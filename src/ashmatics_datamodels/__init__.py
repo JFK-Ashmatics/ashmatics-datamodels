@@ -16,15 +16,17 @@
 AshMatics Core DataModels
 
 Canonical Pydantic data models for AshMatics healthcare applications.
-Provides FDA vocabulary, regulatory schemas, and clinical AI use case taxonomy.
+Provides FDA vocabulary, regulatory schemas, clinical AI use case taxonomy,
+and MongoDB document schemas with standardized three-tier structure.
 
 Usage:
     from ashmatics_datamodels.fda import FDA_ManufacturerBase, FDA_510kClearance
     from ashmatics_datamodels.common import AshMaticsBaseModel
     from ashmatics_datamodels.use_cases import UseCaseCategoryBase
+    from ashmatics_datamodels.documents import EvidenceDocument, RegulatoryDocument
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Asher Informatics PBC"
 
 from ashmatics_datamodels.common import AshMaticsBaseModel, TimestampedModel

@@ -12,7 +12,8 @@ This library provides the **single source of truth** for data contracts across t
 
 ## Features
 
-- **FDA Vocabulary**: OpenFDA-aligned schemas for manufacturers, clearances, classifications
+- **FDA Vocabulary**: OpenFDA-aligned schemas for manufacturers, clearances, classifications, recalls, adverse events
+- **MongoDB Document Schemas**: Three-tier structure for all `kb_*` collections (evidence, regulatory, model cards, products, manufacturers, use cases)
 - **Use Case Taxonomy**: Clinical AI use case categorization
 - **Rich Validation**: Built-in validators for regulatory identifiers (K numbers, product codes)
 - **Database Agnostic**: Pure Pydantic models, no ORM coupling
@@ -59,11 +60,18 @@ clearance = FDA_510kClearance(
 
 ```
 ashmatics_datamodels/
-├── common/          # Base models, validators, shared types
-├── fda/             # FDA vocabulary (manufacturers, clearances, classifications)
+├── common/          # Base models, validators, regulators, frameworks
+├── fda/             # FDA vocabulary (manufacturers, clearances, classifications, recalls, adverse events)
+├── documents/       # MongoDB document schemas (three-tier structure)
 ├── use_cases/       # Clinical AI use case taxonomy
 └── utils/           # Parsing and normalization utilities
 ```
+
+## Documentation
+
+- [Phase 1: FDA & Common Schemas](docs/IMPL-CommonDataModel_Phase1-2025-11-21.md)
+- [Phase 2: MongoDB Document Schemas](docs/IMPL-MongoDocumentSchemas-Phase2-2025-11-21.md)
+- [Complete Migration Plan](docs/Plans/ENGR-DesignPlan-CompleteDataModels-2025-11-21.md)
 
 ## License
 
