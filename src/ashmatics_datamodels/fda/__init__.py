@@ -18,7 +18,9 @@ FDA vocabulary schemas aligned with OpenFDA Device API.
 This module provides Pydantic models for:
 - Manufacturers and applicants
 - 510(k) clearances, PMA approvals, De Novo classifications
+- Regulatory authorizations and lifecycle tracking
 - Device classifications and product codes
+- Products and regulatory status
 - FDA-specific enumerations
 
 Vocabulary Source: https://open.fda.gov/device/
@@ -28,18 +30,33 @@ Reference: 21 CFR Parts 807, 814, 860
 from ashmatics_datamodels.fda.clearances import (
     FDA_510kClearance,
     FDA_510kClearanceCreate,
+    FDA_510kClearanceResponse,
     FDA_ClearanceBase,
     FDA_DeNovoClearance,
     FDA_PMAClearance,
+    FDA_PredicateDevice,
+    RegulatoryAuthorizationBase,
+    RegulatoryAuthorizationCreate,
+    RegulatoryAuthorizationResponse,
+    RegulatoryAuthorizationStats,
+    RegulatoryAuthorizationUpdate,
 )
 from ashmatics_datamodels.fda.classifications import (
+    ClassificationSystemInfo,
     FDA_DeviceClassification,
     FDA_ProductCode,
+    ProductClassificationBase,
+    ProductClassificationCreate,
+    ProductClassificationResponse,
+    ProductClassificationSystemBase,
+    ProductClassificationSystemCreate,
+    ProductClassificationSystemResponse,
 )
 from ashmatics_datamodels.fda.enums import (
     ClearanceType,
     FDA_DeviceClass,
     Modality,
+    ReviewPanel,
     SubmissionType,
 )
 from ashmatics_datamodels.fda.manufacturers import (
@@ -48,6 +65,16 @@ from ashmatics_datamodels.fda.manufacturers import (
     FDA_ManufacturerCreate,
     FDA_ManufacturerResponse,
 )
+from ashmatics_datamodels.fda.products import (
+    FDA_ProductBase,
+    FDA_ProductCreate,
+    FDA_ProductResponse,
+    ProductRegulatoryStatusBase,
+    ProductRegulatoryStatusCreate,
+    ProductRegulatoryStatusResponse,
+    ProductRegulatoryStatusStats,
+    ProductRegulatoryStatusUpdate,
+)
 
 __all__ = [
     # Enums
@@ -55,18 +82,46 @@ __all__ = [
     "FDA_DeviceClass",
     "Modality",
     "SubmissionType",
+    "ReviewPanel",
     # Manufacturers
     "FDA_ManufacturerAddress",
     "FDA_ManufacturerBase",
     "FDA_ManufacturerCreate",
     "FDA_ManufacturerResponse",
-    # Clearances
+    # Clearances (510k, PMA, De Novo)
     "FDA_ClearanceBase",
     "FDA_510kClearance",
     "FDA_510kClearanceCreate",
+    "FDA_510kClearanceResponse",
     "FDA_PMAClearance",
     "FDA_DeNovoClearance",
-    # Classifications
+    "FDA_PredicateDevice",
+    # Regulatory Authorizations
+    "RegulatoryAuthorizationBase",
+    "RegulatoryAuthorizationCreate",
+    "RegulatoryAuthorizationUpdate",
+    "RegulatoryAuthorizationResponse",
+    "RegulatoryAuthorizationStats",
+    # Classifications (OpenFDA)
     "FDA_DeviceClassification",
     "FDA_ProductCode",
+    # Classification Systems (Multi-jurisdiction)
+    "ProductClassificationSystemBase",
+    "ProductClassificationSystemCreate",
+    "ProductClassificationSystemResponse",
+    "ClassificationSystemInfo",
+    # Product Classifications
+    "ProductClassificationBase",
+    "ProductClassificationCreate",
+    "ProductClassificationResponse",
+    # Products
+    "FDA_ProductBase",
+    "FDA_ProductCreate",
+    "FDA_ProductResponse",
+    # Product Regulatory Status
+    "ProductRegulatoryStatusBase",
+    "ProductRegulatoryStatusCreate",
+    "ProductRegulatoryStatusUpdate",
+    "ProductRegulatoryStatusResponse",
+    "ProductRegulatoryStatusStats",
 ]

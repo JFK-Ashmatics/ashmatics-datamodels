@@ -24,8 +24,25 @@ from ashmatics_datamodels.common.base import (
 from ashmatics_datamodels.common.enums import (
     AuthorizationStatus,
     ParsingStatus,
+    Region,
     RegulatoryStatus,
     RiskCategory,
+)
+from ashmatics_datamodels.common.frameworks import (
+    RegulatoryFrameworkBase,
+    RegulatoryFrameworkCreate,
+    RegulatoryFrameworkResponse,
+    RegulatoryFrameworkStats,
+    RegulatoryFrameworkSummary,
+    RegulatoryFrameworkUpdate,
+)
+from ashmatics_datamodels.common.regulators import (
+    RegulatorBase,
+    RegulatorCreate,
+    RegulatorResponse,
+    RegulatorStats,
+    RegulatorSummary,
+    RegulatorUpdate,
 )
 from ashmatics_datamodels.common.validators import (
     validate_country_code,
@@ -42,7 +59,22 @@ __all__ = [
     "RegulatoryStatus",
     "RiskCategory",
     "ParsingStatus",
+    "Region",
     # Validators
     "validate_country_code",
     "validate_iso_date",
+    # Regulators
+    "RegulatorBase",
+    "RegulatorCreate",
+    "RegulatorUpdate",
+    "RegulatorResponse",
+    "RegulatorSummary",
+    "RegulatorStats",
+    # Regulatory Frameworks
+    "RegulatoryFrameworkBase",
+    "RegulatoryFrameworkCreate",
+    "RegulatoryFrameworkUpdate",
+    "RegulatoryFrameworkResponse",
+    "RegulatoryFrameworkSummary",
+    "RegulatoryFrameworkStats",
 ]

@@ -15,15 +15,26 @@
 """
 FDA device classification and product code schemas.
 
+Includes:
+- FDA_ProductCode: Three-letter product code definitions
+- FDA_DeviceClassification: OpenFDA classification records
+- ProductClassificationSystem: Multi-jurisdiction classification systems (CDRH, EMDN, GMDN, ARTG)
+- ProductClassification: Individual classification codes within systems
+
 Reference: 21 CFR Parts 862-892 (Device Classification Regulations)
 Vocabulary Source: OpenFDA Device Classification API
+
+Migrated from: KB src/app/schemas/product_classification_schema.py
+               KB src/app/schemas/product_classification_system_schema.py
 """
 
+from datetime import datetime
 from typing import Optional
 
-from pydantic import Field, computed_field, field_validator
+from pydantic import AliasChoices, Field, computed_field, field_validator
 
-from ashmatics_datamodels.common.base import AshMaticsBaseModel
+from ashmatics_datamodels.common.base import AshMaticsBaseModel, TimestampedModel
+from ashmatics_datamodels.common.enums import RiskCategory
 from ashmatics_datamodels.common.validators import validate_product_code
 from ashmatics_datamodels.fda.enums import FDA_DeviceClass, ReviewPanel, SubmissionType
 
@@ -181,3 +192,198 @@ class FDA_DeviceClassification(AshMaticsBaseModel):
         if self.life_sustain_support_flag:
             return self.life_sustain_support_flag.upper() == "Y"
         return False
+
+
+# =============================================================================
+# Product Classification System (Multi-Jurisdiction)
+# =============================================================================
+
+
+class ProductClassificationSystemBase(AshMaticsBaseModel):
+    """
+    Base schema for product classification systems.
+
+    Classification systems are jurisdiction-specific taxonomies for
+    categorizing medical devices (CDRH, EMDN, GMDN, ARTG, etc.).
+    """
+
+    system_code: str = Field(
+        ...,
+        max_length=50,
+        description="Unique system code (CDRH, EMDN, GMDN, ARTG)",
+    )
+    system_name: str = Field(
+        ...,
+        max_length=255,
+        description="Full system name",
+    )
+    version: Optional[str] = Field(
+        None,
+        max_length=50,
+        description="System version",
+    )
+    description: Optional[str] = Field(
+        None,
+        description="Detailed system description",
+    )
+    official_url: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="Official website or documentation URL",
+    )
+    is_active: bool = Field(
+        True,
+        description="Whether system is currently active",
+    )
+
+
+class ProductClassificationSystemCreate(ProductClassificationSystemBase):
+    """Schema for creating a new product classification system."""
+
+    regulator_id: Optional[int] = Field(
+        None,
+        gt=0,
+        description="Foreign key to regulators (nullable for global systems like GMDN)",
+    )
+
+
+class ProductClassificationSystemResponse(ProductClassificationSystemBase, TimestampedModel):
+    """Schema for product classification system responses."""
+
+    id: Optional[int] = Field(None, description="Classification system ID")
+    regulator_id: Optional[int] = Field(None, description="Foreign key to regulator")
+
+    # Computed fields
+    classification_count: int = Field(
+        0, description="Number of classifications in this system"
+    )
+
+
+class ClassificationSystemInfo(AshMaticsBaseModel):
+    """Nested schema for classification system information."""
+
+    id: int
+    system_code: str
+    system_name: str
+    version: Optional[str] = None
+    regulator_code: Optional[str] = None
+
+
+# =============================================================================
+# Product Classification (Individual Codes within Systems)
+# =============================================================================
+
+
+class ProductClassificationBase(AshMaticsBaseModel):
+    """
+    Base schema for product classifications.
+
+    Individual classification codes within a classification system
+    (e.g., LLZ within CDRH, 12345 within GMDN).
+    """
+
+    code: str = Field(
+        ...,
+        max_length=50,
+        validation_alias=AliasChoices("code", "product_code"),
+        description="Classification code (FDA: product_code)",
+    )
+    description: str = Field(
+        ...,
+        max_length=500,
+        description="Short description of the classification",
+    )
+    device_name: Optional[str] = Field(
+        None,
+        max_length=255,
+        description="Common device name",
+    )
+    device_class: Optional[str] = Field(
+        None,
+        max_length=10,
+        description="Device class: 1, 2, 3 (FDA) or I, IIa, IIb, III (EU MDR)",
+    )
+    risk_category: Optional[RiskCategory] = Field(
+        None,
+        description="Risk category (low, moderate, high)",
+    )
+    definition: Optional[str] = Field(
+        None,
+        description="Detailed classification definition",
+    )
+    regulation_number: Optional[str] = Field(
+        None,
+        max_length=50,
+        description="Regulatory reference (e.g., 21 CFR 880.6310)",
+    )
+    medical_specialty: Optional[str] = Field(
+        None,
+        max_length=255,
+        validation_alias=AliasChoices("medical_specialty", "medical_specialty_description"),
+        description="Associated medical specialty (FDA: medical_specialty_description)",
+    )
+    review_panel: Optional[str] = Field(
+        None,
+        max_length=255,
+        description="Regulatory review panel",
+    )
+    target_area: Optional[str] = Field(
+        None,
+        max_length=255,
+        description="Target anatomical area or application",
+    )
+    technical_method: Optional[str] = Field(
+        None,
+        description="Technical method or approach",
+    )
+    is_active: bool = Field(True, description="Whether classification is currently active")
+
+    # FDA-specific flags
+    gmp_exempt_flag: Optional[bool] = Field(
+        None,
+        description="FDA: Whether device is exempt from GMP (21 CFR 820)",
+    )
+    implant_flag: Optional[bool] = Field(
+        None,
+        description="FDA: Whether device is implantable",
+    )
+    life_sustain_support_flag: Optional[bool] = Field(
+        None,
+        description="FDA: Whether device is life-sustaining or life-supporting",
+    )
+    submission_type: Optional[SubmissionType] = Field(
+        None,
+        description="FDA: Required submission pathway (510(k), PMA, De Novo, Exempt)",
+    )
+
+
+class ProductClassificationCreate(ProductClassificationBase):
+    """Schema for creating a new product classification."""
+
+    classification_system_id: int = Field(
+        ...,
+        gt=0,
+        description="Foreign key to product_classification_systems",
+    )
+
+
+class ProductClassificationResponse(ProductClassificationBase, TimestampedModel):
+    """Schema for product classification responses."""
+
+    id: Optional[int] = Field(None, description="Primary key")
+    classification_system_id: int = Field(
+        ..., description="Foreign key to classification system"
+    )
+
+    # Nested classification system info
+    classification_system: Optional[ClassificationSystemInfo] = Field(
+        None, description="Nested classification system information"
+    )
+
+    @computed_field
+    @property
+    def full_code(self) -> str:
+        """Full code with system prefix (e.g., 'CDRH:LLZ')."""
+        if self.classification_system:
+            return f"{self.classification_system.system_code}:{self.code}"
+        return self.code

@@ -15,18 +15,28 @@
 """
 FDA clearance and approval schemas.
 
+Includes:
+- FDA_510kClearance: 510(k) premarket notifications
+- FDA_PMAClearance: Premarket Approval applications
+- FDA_DeNovoClearance: De Novo classification requests
+- RegulatoryAuthorization: Generic authorization lifecycle tracking
+
 Covers 510(k), PMA, De Novo, and other FDA premarket pathways.
 
 Reference: 21 CFR Parts 807, 814, 860
 Vocabulary Source: OpenFDA Device 510k API (https://open.fda.gov/device/510k/)
+
+Migrated from: KB src/app/schemas/regulatory_authorization_schema.py
+JIRA: ASHKBAPP-28 (Phase 2.3)
 """
 
 from datetime import date
 from typing import Optional
 
-from pydantic import Field, computed_field, field_validator, model_validator
+from pydantic import AliasChoices, Field, computed_field, field_validator
 
-from ashmatics_datamodels.common.base import AshMaticsBaseModel, AuditedModel
+from ashmatics_datamodels.common.base import AshMaticsBaseModel, AuditedModel, TimestampedModel
+from ashmatics_datamodels.common.enums import AuthorizationStatus
 from ashmatics_datamodels.common.validators import (
     validate_iso_date,
     validate_k_number_format,
@@ -312,3 +322,160 @@ class FDA_DeNovoClearance(FDA_ClearanceBase):
         if not result.startswith("DEN"):
             raise ValueError("De Novo number must start with 'DEN'")
         return result
+
+
+# =============================================================================
+# Regulatory Authorization (Generic Lifecycle Tracking)
+# =============================================================================
+
+
+class RegulatoryFrameworkInfo(AshMaticsBaseModel):
+    """Nested schema for regulatory framework information."""
+
+    id: int
+    framework_code: str
+    framework_name: str
+    authorization_type: str
+    regulator_code: Optional[str] = None
+
+
+class ProductStatusInfo(AshMaticsBaseModel):
+    """Nested schema for product regulatory status information."""
+
+    id: int
+    product_id: int
+    regulator_id: int
+    regulatory_status: str
+
+
+class RegulatoryAuthorizationBase(AshMaticsBaseModel):
+    """
+    Base schema for regulatory authorizations.
+
+    Represents specific market authorizations granted under regulatory
+    frameworks (510(k), PMA, CE Mark, ARTG registration, etc.).
+
+    Tracks authorization lifecycle including expiry and renewal.
+    """
+
+    authorization_number: str = Field(
+        ...,
+        max_length=100,
+        description="Unique authorization number (e.g., K123456, P123456)",
+    )
+    authorization_date: Optional[date] = Field(
+        None,
+        validation_alias=AliasChoices("authorization_date", "decision_date"),
+        description="Date authorization was granted (FDA: decision_date)",
+    )
+    effective_date: Optional[date] = Field(
+        None,
+        description="Date authorization became effective",
+    )
+    expiry_date: Optional[date] = Field(
+        None,
+        description="Date authorization expires (if applicable)",
+    )
+    renewal_due_date: Optional[date] = Field(
+        None,
+        description="Date renewal is due",
+    )
+    status: AuthorizationStatus = Field(
+        ...,
+        description="Authorization lifecycle status (active, expired, withdrawn, suspended, under_review)",
+    )
+    withdrawal_reason: Optional[str] = Field(
+        None,
+        description="Reason if withdrawn",
+    )
+    notes: Optional[str] = Field(
+        None,
+        description="Additional notes",
+    )
+
+    # FDA-specific fields
+    date_received: Optional[date] = Field(
+        None,
+        description="FDA: Date Document Control Center received submission",
+    )
+    expedited_review_flag: Optional[bool] = Field(
+        None,
+        description="FDA: Whether eligible for priority/expedited review",
+    )
+    third_party_flag: Optional[bool] = Field(
+        None,
+        description="FDA: Whether eligible for third-party review",
+    )
+
+
+class RegulatoryAuthorizationCreate(RegulatoryAuthorizationBase):
+    """Schema for creating a new regulatory authorization."""
+
+    product_regulatory_status_id: int = Field(
+        ..., gt=0, description="Foreign key to product_regulatory_status"
+    )
+    framework_id: int = Field(
+        ..., gt=0, description="Foreign key to regulatory_frameworks"
+    )
+    premarket_clearance_id: Optional[str] = Field(
+        None, description="Foreign key to premarket_clearances (optional)"
+    )
+
+
+class RegulatoryAuthorizationUpdate(AshMaticsBaseModel):
+    """Schema for updating an existing regulatory authorization."""
+
+    model_config = {"extra": "ignore"}
+
+    authorization_number: Optional[str] = Field(None, max_length=100)
+    authorization_date: Optional[date] = None
+    effective_date: Optional[date] = None
+    expiry_date: Optional[date] = None
+    renewal_due_date: Optional[date] = None
+    status: Optional[AuthorizationStatus] = None
+    withdrawal_reason: Optional[str] = None
+    notes: Optional[str] = None
+    date_received: Optional[date] = None
+    expedited_review_flag: Optional[bool] = None
+    third_party_flag: Optional[bool] = None
+
+
+class RegulatoryAuthorizationResponse(RegulatoryAuthorizationBase, TimestampedModel):
+    """
+    Schema for regulatory authorization responses.
+
+    Includes computed properties and nested framework/status info.
+    """
+
+    id: Optional[int] = None
+    product_regulatory_status_id: int
+    framework_id: int
+    premarket_clearance_id: Optional[str] = None
+    updated_by_id: Optional[int] = None
+
+    # Computed properties
+    is_expired: Optional[bool] = Field(None, description="Whether authorization has expired")
+    days_until_expiry: Optional[int] = Field(None, description="Days until authorization expires")
+    requires_renewal_soon: Optional[bool] = Field(
+        None, description="Whether renewal is due within 90 days"
+    )
+
+    # Nested information
+    framework: Optional[RegulatoryFrameworkInfo] = None
+    product_status: Optional[ProductStatusInfo] = None
+
+
+class RegulatoryAuthorizationStats(AshMaticsBaseModel):
+    """Schema for regulatory authorization statistics."""
+
+    total_authorizations: int = Field(..., description="Total number of authorizations")
+    by_framework: dict[str, int] = Field(
+        default_factory=dict, description="Count by framework code"
+    )
+    by_status: dict[str, int] = Field(
+        default_factory=dict, description="Count by authorization status"
+    )
+    active_count: int = Field(..., description="Number of active authorizations")
+    expired_count: int = Field(..., description="Number of expired authorizations")
+    expiring_soon_count: int = Field(..., description="Number expiring within 90 days")
+    renewal_due_count: int = Field(..., description="Number requiring renewal within 90 days")
