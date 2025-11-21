@@ -1,0 +1,183 @@
+# Copyright 2025 Asher Informatics PBC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+FDA device classification and product code schemas.
+
+Reference: 21 CFR Parts 862-892 (Device Classification Regulations)
+Vocabulary Source: OpenFDA Device Classification API
+"""
+
+from typing import Optional
+
+from pydantic import Field, computed_field, field_validator
+
+from ashmatics_datamodels.common.base import AshMaticsBaseModel
+from ashmatics_datamodels.common.validators import validate_product_code
+from ashmatics_datamodels.fda.enums import FDA_DeviceClass, ReviewPanel, SubmissionType
+
+
+class FDA_ProductCode(AshMaticsBaseModel):
+    """
+    FDA Product Code definition.
+
+    Product codes are three-letter codes assigned by FDA to categorize
+    medical devices based on their intended use. Each product code maps
+    to a specific device classification regulation.
+
+    Vocabulary Source: https://open.fda.gov/device/classification/
+    """
+
+    product_code: str = Field(
+        ...,
+        max_length=3,
+        min_length=3,
+        description="Three-letter FDA product code (e.g., 'MYN', 'LLZ')",
+    )
+    device_name: str = Field(
+        ..., max_length=500, description="Official FDA device name for this product code"
+    )
+    device_class: FDA_DeviceClass = Field(
+        ..., description="FDA device classification (1, 2, or 3)"
+    )
+
+    # Regulatory details
+    regulation_number: Optional[str] = Field(
+        None,
+        max_length=20,
+        description="21 CFR regulation number (e.g., '892.2050')",
+    )
+    submission_type: Optional[SubmissionType] = Field(
+        None, description="Typical submission pathway for this product code"
+    )
+    review_panel: Optional[ReviewPanel] = Field(
+        None, description="FDA review panel responsible for this device type"
+    )
+
+    # Exemption status
+    gmp_exempt: Optional[bool] = Field(
+        None, description="Whether device is exempt from GMP (21 CFR Part 820)"
+    )
+    premarket_exempt: Optional[bool] = Field(
+        None, description="Whether device is exempt from premarket notification"
+    )
+
+    # Definition and scope
+    definition: Optional[str] = Field(
+        None, description="FDA regulatory definition of this device type"
+    )
+
+    @field_validator("product_code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        result = validate_product_code(v)
+        if result is None:
+            raise ValueError("product_code is required")
+        return result
+
+    @computed_field
+    @property
+    def cfr_reference(self) -> Optional[str]:
+        """Get full CFR reference if regulation number is available."""
+        if self.regulation_number:
+            return f"21 CFR {self.regulation_number}"
+        return None
+
+
+class FDA_DeviceClassification(AshMaticsBaseModel):
+    """
+    Complete FDA device classification record.
+
+    Represents a specific device classification including product code,
+    device class, regulatory requirements, and special controls.
+
+    This schema aligns with OpenFDA Device Classification API responses.
+    """
+
+    # Identifiers
+    product_code: str = Field(..., max_length=3, description="Three-letter product code")
+    device_name: str = Field(..., max_length=500, description="FDA device name")
+    device_class: FDA_DeviceClass = Field(..., description="Device classification")
+
+    # Regulatory pathway
+    regulation_number: Optional[str] = Field(
+        None, description="21 CFR regulation number"
+    )
+    submission_type_id: Optional[SubmissionType] = Field(
+        None, description="Required submission type"
+    )
+    review_panel: Optional[ReviewPanel] = Field(None, description="Review panel code")
+
+    # Medical specialty
+    medical_specialty: Optional[str] = Field(
+        None, max_length=100, description="Medical specialty category"
+    )
+    medical_specialty_description: Optional[str] = Field(
+        None, description="Full description of medical specialty"
+    )
+
+    # Exemptions and requirements
+    gmp_exempt_flag: Optional[str] = Field(
+        None, description="GMP exemption flag (Y/N)"
+    )
+    premarket_exempt: Optional[str] = Field(
+        None, description="Premarket exemption status"
+    )
+    summary_malfunction_reporting: Optional[str] = Field(
+        None, description="Summary malfunction reporting eligibility"
+    )
+
+    # Life-sustaining/supporting
+    life_sustain_support_flag: Optional[str] = Field(
+        None, description="Whether device is life-sustaining or life-supporting"
+    )
+    implant_flag: Optional[str] = Field(
+        None, description="Whether device is an implant"
+    )
+
+    # Definition
+    definition: Optional[str] = Field(
+        None, description="Regulatory definition of device type"
+    )
+
+    @field_validator("product_code")
+    @classmethod
+    def validate_code(cls, v: str) -> str:
+        result = validate_product_code(v)
+        if result is None:
+            raise ValueError("product_code is required")
+        return result
+
+    @computed_field
+    @property
+    def is_class_3(self) -> bool:
+        """Check if this is a Class III (high-risk) device."""
+        return self.device_class == FDA_DeviceClass.CLASS_3
+
+    @computed_field
+    @property
+    def requires_pma(self) -> bool:
+        """Check if device typically requires PMA."""
+        return (
+            self.device_class == FDA_DeviceClass.CLASS_3
+            and self.submission_type_id == SubmissionType.PMA
+        )
+
+    @computed_field
+    @property
+    def is_life_sustaining(self) -> bool:
+        """Check if device is life-sustaining or life-supporting."""
+        if self.life_sustain_support_flag:
+            return self.life_sustain_support_flag.upper() == "Y"
+        return False
