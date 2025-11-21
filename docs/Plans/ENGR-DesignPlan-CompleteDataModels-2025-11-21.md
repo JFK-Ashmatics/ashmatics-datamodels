@@ -17,46 +17,42 @@ This document inventories all Pydantic schemas and data models across the AshMat
 
 ---
 
-## Current State (v0.1.0)
+## Current State (v0.1.0) - Phase 1 Complete
 
-### Already Implemented
-| Module | Classes | Source |
-|--------|---------|--------|
-| `common/base.py` | `AshMaticsBaseModel`, `TimestampedModel`, `AuditedModel` | New |
-| `common/enums.py` | `AuthorizationStatus`, `RegulatoryStatus`, `RiskCategory`, `ParsingStatus`, `Region` | KB `enums.py` |
-| `common/validators.py` | `validate_k_number_format`, `validate_country_code`, `validate_product_code`, `validate_iso_date` | New |
-| `fda/enums.py` | `ClearanceType`, `FDA_DeviceClass`, `Modality`, `SubmissionType`, `ReviewPanel` | KB `enums.py` |
-| `fda/manufacturers.py` | `FDA_ManufacturerBase`, `FDA_ManufacturerAddress`, `FDA_ManufacturerResponse` | KB + Plan |
-| `fda/clearances.py` | `FDA_510kClearance`, `FDA_PMAClearance`, `FDA_DeNovoClearance`, `FDA_PredicateDevice` | KB + Plan |
-| `fda/classifications.py` | `FDA_ProductCode`, `FDA_DeviceClassification` | New |
-| `use_cases/enums.py` | `ClinicalDomain`, `ClinicalSpecialty`, `DeploymentModel`, `IntegrationTarget`, `EvidenceStrength` | New |
-| `use_cases/categories.py` | `UseCaseCategoryBase`, `UseCaseCategoryResponse`, `UseCaseCategoryTree` | KB `use_case_category_schema.py` |
-| `use_cases/use_cases.py` | `UseCaseBase`, `UseCaseResponse`, `ApplicableProduct`, `SupportingEvidence` | New |
+### common/ Module
+| File | Classes | Source |
+|------|---------|--------|
+| `base.py` | `AshMaticsBaseModel`, `TimestampedModel`, `AuditedModel` | New |
+| `enums.py` | `AuthorizationStatus`, `RegulatoryStatus`, `RiskCategory`, `ParsingStatus`, `Region` | KB `enums.py` |
+| `validators.py` | `validate_country_code`, `validate_iso_date` | New |
+| `regulators.py` | `RegulatorBase`, `RegulatorCreate`, `RegulatorUpdate`, `RegulatorResponse`, `RegulatorSummary`, `RegulatorStats` | KB `regulator_schema.py` |
+| `frameworks.py` | `RegulatoryFrameworkBase`, `RegulatoryFrameworkCreate`, `RegulatoryFrameworkUpdate`, `RegulatoryFrameworkResponse`, `RegulatoryFrameworkSummary`, `RegulatoryFrameworkStats` | KB `regulatory_framework_schema.py` |
+
+### fda/ Module
+| File | Classes | Source |
+|------|---------|--------|
+| `enums.py` | `ClearanceType`, `FDA_DeviceClass`, `Modality`, `SubmissionType`, `ReviewPanel` | KB `enums.py` |
+| `manufacturers.py` | `FDA_ManufacturerBase`, `FDA_ManufacturerCreate`, `FDA_ManufacturerResponse`, `FDA_ManufacturerAddress` | KB + Plan |
+| `clearances.py` | `FDA_ClearanceBase`, `FDA_510kClearance*`, `FDA_PMAClearance`, `FDA_DeNovoClearance`, `FDA_PredicateDevice`, `RegulatoryAuthorization*` | KB `clearance_schema.py`, `regulatory_authorization_schema.py` |
+| `classifications.py` | `FDA_ProductCode`, `FDA_DeviceClassification`, `ProductClassificationBase/Create/Response`, `ProductClassificationSystemBase/Create/Response`, `ClassificationSystemInfo` | KB `product_classification_schema.py`, `product_classification_system_schema.py` |
+| `products.py` | `FDA_ProductBase/Create/Response`, `ProductRegulatoryStatusBase/Create/Update/Response/Stats` | KB `product_regulatory_status_schema.py` |
+| `recalls.py` | `FDA_RecallBase/Create/Response/Stats`, `RecallStatus`, `RecallClass`, `RecallType` | New (OpenFDA aligned) |
+| `adverse_events.py` | `FDA_AdverseEventBase/Create/Response/Stats`, `FDA_MAUDEDevice`, `FDA_MAUDEPatient`, `EventType`, `ReportSourceCode`, `DeviceOperator` | New (OpenFDA aligned) |
+
+### use_cases/ Module
+| File | Classes | Source |
+|------|---------|--------|
+| `enums.py` | `ClinicalDomain`, `ClinicalSpecialty`, `DeploymentModel`, `IntegrationTarget`, `EvidenceStrength` | New |
+| `categories.py` | `UseCaseCategoryBase`, `UseCaseCategoryCreate`, `UseCaseCategoryResponse`, `UseCaseCategoryTree` | KB `use_case_category_schema.py` |
+| `use_cases.py` | `UseCaseBase`, `UseCaseCreate`, `UseCaseResponse`, `ApplicableProduct`, `SupportingEvidence` | New |
 
 ---
 
 ## Remaining Schemas to Migrate
 
-### Priority 1: Core Regulatory & Product (Required for 510k Ingestion)
+### Priority 1: Core Regulatory & Product ✅ COMPLETE
 
-#### From KB `src/app/schemas/`
-
-| Schema File | Classes to Migrate | Target Module | Notes |
-|-------------|-------------------|---------------|-------|
-| `product_classification_schema.py` | `ProductClassificationBase`, `ProductClassificationResponse` | `fda/classifications.py` | FDA product codes |
-| `product_classification_system_schema.py` | `ClassificationSystemBase` | `fda/classifications.py` | Classification system metadata |
-| `product_regulatory_status_schema.py` | `ProductRegulatoryStatusBase` | `fda/products.py` | NEW FILE |
-| `regulatory_authorization_schema.py` | `RegulatoryAuthorizationBase`, `RegulatoryAuthorizationResponse` | `fda/clearances.py` | Extend existing |
-| `regulator_schema.py` | `RegulatorBase`, `RegulatorResponse` | `common/regulators.py` | NEW FILE - multi-jurisdiction |
-| `regulatory_framework_schema.py` | `RegulatoryFrameworkBase` | `common/frameworks.py` | NEW FILE |
-
-#### New FDA Schemas Needed
-
-| Target File | Classes | Purpose |
-|-------------|---------|---------|
-| `fda/products.py` | `FDA_ProductBase`, `FDA_ProductResponse`, `FDA_ProductWithClearances` | Product/device schemas |
-| `fda/recalls.py` | `FDA_RecallBase`, `FDA_RecallResponse` | Recall data from openFDA |
-| `fda/adverse_events.py` | `FDA_MAUDEReport`, `FDA_AdverseEventBase` | MAUDE adverse event data |
+All Priority 1 schemas have been migrated. See "Current State" section above for details.
 
 ---
 

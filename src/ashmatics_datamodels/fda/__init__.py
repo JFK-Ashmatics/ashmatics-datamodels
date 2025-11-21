@@ -75,6 +75,26 @@ from ashmatics_datamodels.fda.products import (
     ProductRegulatoryStatusStats,
     ProductRegulatoryStatusUpdate,
 )
+from ashmatics_datamodels.fda.recalls import (
+    FDA_RecallBase,
+    FDA_RecallCreate,
+    FDA_RecallResponse,
+    FDA_RecallStats,
+    RecallClass,
+    RecallStatus,
+    RecallType,
+)
+from ashmatics_datamodels.fda.adverse_events import (
+    DeviceOperator,
+    EventType,
+    FDA_AdverseEventBase,
+    FDA_AdverseEventCreate,
+    FDA_AdverseEventResponse,
+    FDA_AdverseEventStats,
+    FDA_MAUDEDevice,
+    FDA_MAUDEPatient,
+    ReportSourceCode,
+)
 
 __all__ = [
     # Enums
@@ -124,4 +144,22 @@ __all__ = [
     "ProductRegulatoryStatusUpdate",
     "ProductRegulatoryStatusResponse",
     "ProductRegulatoryStatusStats",
+    # Recalls
+    "FDA_RecallBase",
+    "FDA_RecallCreate",
+    "FDA_RecallResponse",
+    "FDA_RecallStats",
+    "RecallStatus",
+    "RecallClass",
+    "RecallType",
+    # Adverse Events (MAUDE)
+    "FDA_AdverseEventBase",
+    "FDA_AdverseEventCreate",
+    "FDA_AdverseEventResponse",
+    "FDA_AdverseEventStats",
+    "FDA_MAUDEDevice",
+    "FDA_MAUDEPatient",
+    "EventType",
+    "ReportSourceCode",
+    "DeviceOperator",
 ]
