@@ -1,0 +1,115 @@
+# Copyright 2025 Asher Informatics PBC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+site_name: AshMatics Core DataModels
+site_description: Canonical Pydantic data models for AshMatics healthcare applications
+site_author: Asher Informatics PBC
+site_url: https://github.com/AsherInformatics/ashmatics-core-datamodels
+
+repo_name: AsherInformatics/ashmatics-core-datamodels
+repo_url: https://github.com/AsherInformatics/ashmatics-core-datamodels
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members_order: source
+            heading_level: 2
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Basic Concepts: getting-started/concepts.md
+  - Module Reference:
+      - Overview: modules/overview.md
+      - Common: modules/common.md
+      - FDA: modules/fda.md
+      - Use Cases: modules/use_cases.md
+      - Documents: modules/documents.md
+  - Examples:
+      - FDA Clearances: examples/fda-clearances.md
+      - MongoDB Documents: examples/mongodb-documents.md
+      - Use Case Taxonomy: examples/use-cases.md
+      - Validators: examples/validators.md
+  - Design Docs:
+      - Migration Plan: design/migration-plan.md
+      - Three-Tier Schema: design/three-tier-schema.md
+  - API Reference:
+      - common: api/common.md
+      - fda: api/fda.md
+      - use_cases: api/use_cases.md
+      - documents: api/documents.md
+  - Contributing: contributing.md
+
+extra:
+  version:
+    provider: mike
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/AsherInformatics/ashmatics-core-datamodels

@@ -69,6 +69,15 @@ ashmatics_datamodels/
 
 ## Documentation
 
+📚 **[Full Documentation](https://asherinformatics.github.io/ashmatics-core-datamodels/)** (when published)
+
+Or build locally:
+```bash
+uv pip install -e ".[docs]"
+uv run mkdocs serve
+```
+
+### Design Documents
 - [Phase 1: FDA & Common Schemas](docs/IMPL-CommonDataModel_Phase1-2025-11-21.md)
 - [Phase 2: MongoDB Document Schemas](docs/IMPL-MongoDocumentSchemas-Phase2-2025-11-21.md)
 - [Complete Migration Plan](docs/Plans/ENGR-DesignPlan-CompleteDataModels-2025-11-21.md)
