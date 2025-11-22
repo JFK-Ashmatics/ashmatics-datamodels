@@ -46,6 +46,25 @@ from ashmatics_datamodels.documents.base import (
 # =============================================================================
 
 
+class RawSection(SectionBase):
+    """
+    Raw parsed section from document parser (e.g., Docling).
+
+    Stores all sections parsed from the original document,
+    not just the enriched/normalized sections. Enables full
+    document reconstruction and verification.
+    """
+
+    section_id: str = Field(
+        ...,
+        description="Unique identifier for this raw section (e.g., 'section_1')",
+    )
+    normalized_to: Optional[str] = Field(
+        None,
+        description="Key of enriched section this maps to (e.g., '2_indications_for_use'). None if not normalized.",
+    )
+
+
 class StructuredIndication(AshMaticsBaseModel):
     """Structured representation of indications for use."""
 
@@ -258,6 +277,9 @@ class RegulatoryContent(ContentBase):
 
     Standard 510(k) summary structure with device description,
     indications, predicates, testing, and substantial equivalence.
+
+    Includes both enriched/normalized sections and raw parsed sections
+    for complete document preservation and traceability.
     """
 
     sections: dict[str, SectionBase] = Field(
@@ -278,7 +300,12 @@ class RegulatoryContent(ContentBase):
                 title="Substantial Equivalence", order=5
             ),
         },
-        description="Standard 510(k) summary sections",
+        description="Enriched/normalized 510(k) summary sections (Ashmatics value-add)",
+    )
+
+    raw_sections: list[RawSection] = Field(
+        default_factory=list,
+        description="All sections parsed from document (complete content from parser like Docling)",
     )
 
 

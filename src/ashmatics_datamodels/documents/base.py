@@ -112,6 +112,14 @@ class MetadataObjectBase(AshMaticsBaseModel):
         None,
         description="URI to source file (e.g., s3://bucket/path/file.pdf)",
     )
+    source_pdf_url: Optional[str] = Field(
+        None,
+        description="Azure Blob URL to original PDF file for user download/viewing",
+    )
+    markdown_url: Optional[str] = Field(
+        None,
+        description="Azure Blob URL to full parsed markdown (from Docling/parser) for source verification",
+    )
     checksum_md5: Optional[str] = Field(
         None,
         max_length=32,
@@ -256,6 +264,10 @@ class TableReference(AshMaticsBaseModel):
     referenced_in_sections: list[str] = Field(
         default_factory=list,
         description="Section IDs where this table is referenced",
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional table metadata (e.g., markdown, source format, classification)",
     )
 
 
