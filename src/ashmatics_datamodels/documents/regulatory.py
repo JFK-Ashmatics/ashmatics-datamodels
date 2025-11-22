@@ -254,8 +254,7 @@ class RegulatoryMetadataContent(MetadataContentBase):
     )
     product_code: Optional[str] = Field(
         None,
-        max_length=3,
-        description="FDA three-letter product code",
+        description="FDA three-letter product code(s). Single code (e.g., 'QIH') or comma-separated for multiple (e.g., 'QIH,LLZ')",
     )
 
     # Advisory committee
