@@ -148,6 +148,19 @@ class PerformanceTestResults(AshMaticsBaseModel):
 # =============================================================================
 
 
+class SponsorSection(SectionBase):
+    """
+    Sponsor/Applicant identification section.
+
+    Contains sponsor company information, contact details,
+    and submission metadata commonly found at the beginning
+    of 510(k) and De Novo summary documents.
+    """
+
+    title: str = Field(default="Sponsor Information", description="Section title")
+    order: int = Field(default=0, description="Section order")
+
+
 class DeviceDescriptionSection(SectionBase):
     """Device description section with structured fields."""
 
@@ -283,6 +296,9 @@ class RegulatoryContent(ContentBase):
 
     sections: dict[str, SectionBase] = Field(
         default_factory=lambda: {
+            "0_sponsor": SponsorSection(
+                title="Sponsor Information", order=0
+            ),
             "1_device_description": DeviceDescriptionSection(
                 title="Device Description", order=1
             ),
