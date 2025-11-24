@@ -143,6 +143,102 @@ class PerformanceTestResults(AshMaticsBaseModel):
     )
 
 
+class PatientDemographics(AshMaticsBaseModel):
+    """Patient demographics for training/validation datasets (REQ-2.2)."""
+
+    age_range: Optional[str] = Field(
+        None,
+        description="Age range of patients (e.g., '18-85 years')",
+    )
+    gender_distribution: Optional[dict[str, float]] = Field(
+        None,
+        description="Gender distribution (e.g., {'male': 0.52, 'female': 0.48})",
+    )
+    race_ethnicity_distribution: Optional[dict[str, float]] = Field(
+        None,
+        description="Race/ethnicity distribution per FDA guidance",
+    )
+    additional_demographics: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional demographic characteristics",
+    )
+
+
+class DatasetCharacteristics(AshMaticsBaseModel):
+    """Dataset characteristics for AI/ML training data (REQ-2)."""
+
+    dataset_size: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Total number of samples/images/patients (REQ-2.1)",
+    )
+    data_source: Optional[str] = Field(
+        None,
+        description="Source of data (e.g., institution names, public datasets) (REQ-2.4)",
+    )
+    multi_site: Optional[bool] = Field(
+        None,
+        description="Whether data collected from multiple sites (REQ-2.4)",
+    )
+    imaging_modality: Optional[str] = Field(
+        None,
+        description="Imaging modality/device type for data acquisition (REQ-2.6)",
+    )
+    ground_truth_method: Optional[str] = Field(
+        None,
+        description="Ground truth/reference standard methodology (REQ-2.7)",
+    )
+    additional_characteristics: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional dataset characteristics",
+    )
+
+
+class TrainingDataCharacteristics(AshMaticsBaseModel):
+    """
+    AI/ML training data characteristics for devices using data-driven models.
+
+    Addresses REQ-2 (AI/ML Model Training Data Extraction) from design plan.
+    Critical for assessing model generalizability, bias, and applicability
+    to specific patient populations.
+    """
+
+    dataset_characteristics: Optional[DatasetCharacteristics] = Field(
+        None,
+        description="Training dataset characteristics (REQ-2.1, 2.4, 2.6, 2.7)",
+    )
+    patient_demographics: Optional[PatientDemographics] = Field(
+        None,
+        description="Patient demographics in training data (REQ-2.2)",
+    )
+    inclusion_criteria: Optional[str] = Field(
+        None,
+        description="Inclusion criteria for training data (REQ-2.5)",
+    )
+    exclusion_criteria: Optional[str] = Field(
+        None,
+        description="Exclusion criteria for training data (REQ-2.5)",
+    )
+    disease_characteristics: Optional[str] = Field(
+        None,
+        description="Disease/condition characteristics (severity, stage, comorbidities) (REQ-2.3)",
+    )
+    data_collection_period: Optional[str] = Field(
+        None,
+        description="Time period for data collection",
+    )
+    extraction_confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Confidence score for extracted training data information (0-100)",
+    )
+    source_tables: list[str] = Field(
+        default_factory=list,
+        description="List of table IDs from which training data was extracted",
+    )
+
+
 # =============================================================================
 # Regulatory-Specific Sections
 # =============================================================================
@@ -191,13 +287,17 @@ class PredicatesSection(SectionBase):
 
 
 class PerformanceTestingSection(SectionBase):
-    """Performance testing section with results."""
+    """Performance testing section with results and training data."""
 
     title: str = Field(default="Performance Testing", description="Section title")
     order: int = Field(default=4, description="Section order")
     test_results: Optional[PerformanceTestResults] = Field(
         None,
         description="Structured test results",
+    )
+    training_data: Optional[TrainingDataCharacteristics] = Field(
+        None,
+        description="AI/ML training data characteristics (Phase 2D, REQ-2)",
     )
 
 
@@ -268,6 +368,12 @@ class RegulatoryMetadataContent(MetadataContentBase):
     product_code: Optional[str] = Field(
         None,
         description="FDA three-letter product code(s). Single code (e.g., 'QIH') or comma-separated for multiple (e.g., 'QIH,LLZ')",
+    )
+
+    # Predicate devices (for easy querying)
+    predicate_devices: list[str] = Field(
+        default_factory=list,
+        description="List of predicate device K-numbers (e.g., ['K213882', 'K191928']). Top-level array for easy MongoDB queries.",
     )
 
     # Advisory committee
