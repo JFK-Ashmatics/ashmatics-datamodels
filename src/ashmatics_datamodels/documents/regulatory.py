@@ -19,11 +19,19 @@ FDA 510(k) summaries, PMA summaries, and De Novo summaries
 with structured sections for device description, indications,
 predicates, and performance testing.
 
+Phase 2E (2025-11-25): Added comprehensive performance data models:
+- StudyType, MetricType enums for standardized classification
+- PerformanceMetric for individual metrics with statistical context
+- TestDataset for validation dataset characteristics
+- ValidationStudy for study design and methodology
+- Enhanced PerformanceTestResults with structured validation data
+
 Reference: docs/Plans/DocumentDataModelSchema-Normalize-2025-11-15/
 Vocabulary: https://open.fda.gov/device/510k/
 """
 
 from datetime import date
+from enum import Enum
 from typing import Any, Optional
 
 from pydantic import Field
@@ -39,6 +47,53 @@ from ashmatics_datamodels.documents.base import (
     MongoDocumentBase,
     SectionBase,
 )
+
+
+# =============================================================================
+# Phase 2E Enumerations (Performance Data Extraction)
+# =============================================================================
+
+
+class StudyType(str, Enum):
+    """
+    Type of validation study (REQ-3.7).
+
+    Used to classify validation studies in FDA 510(k) and De Novo submissions.
+    """
+
+    STANDALONE = "standalone"  # Device-only testing with ground truth
+    CLINICAL_VALIDATION = "clinical_validation"  # Clinical evaluation study
+    READER_STUDY = "reader_study"  # Multi-reader multi-case (MRMC) study
+    PIVOTAL_STUDY = "pivotal_study"  # Definitive regulatory validation study
+    PILOT_STUDY = "pilot_study"  # Preliminary feasibility study
+    RETROSPECTIVE = "retrospective"  # Retrospective chart review/data analysis
+    PROSPECTIVE = "prospective"  # Prospective data collection study
+    UNKNOWN = "unknown"  # Cannot determine study type
+
+
+class MetricType(str, Enum):
+    """
+    Type of performance metric (REQ-3.1).
+
+    Standardized metric types for querying and analysis across devices.
+    """
+
+    SENSITIVITY = "sensitivity"  # True positive rate
+    SPECIFICITY = "specificity"  # True negative rate
+    AUC = "auc"  # Area under ROC curve
+    DICE = "dice"  # DICE coefficient (segmentation overlap)
+    ACCURACY = "accuracy"  # Overall accuracy
+    PPV = "ppv"  # Positive predictive value
+    NPV = "npv"  # Negative predictive value
+    F1_SCORE = "f1_score"  # F1 score (harmonic mean of precision/recall)
+    PRECISION = "precision"  # Precision (same as PPV)
+    RECALL = "recall"  # Recall (same as sensitivity)
+    HAUSDORFF_DISTANCE = "hausdorff_distance"  # Hausdorff distance (segmentation)
+    TIME_TO_DETECTION = "time_to_detection"  # Time to detect finding
+    TIME_TO_NOTIFICATION = "time_to_notification"  # Time to notify clinician
+    DETECTION_RATE = "detection_rate"  # Detection rate (e.g., adenoma, fracture)
+    FALSE_POSITIVE_RATE = "false_positive_rate"  # False positive rate
+    OTHER = "other"  # Other metric types not in standard list
 
 
 # =============================================================================
@@ -107,40 +162,9 @@ class PredicateDeviceInfo(AshMaticsBaseModel):
     )
 
 
-class PerformanceTestResults(AshMaticsBaseModel):
-    """Structured performance testing results."""
-
-    sensitivity: Optional[float] = Field(
-        None,
-        ge=0.0,
-        le=1.0,
-        description="Sensitivity (true positive rate)",
-    )
-    specificity: Optional[float] = Field(
-        None,
-        ge=0.0,
-        le=1.0,
-        description="Specificity (true negative rate)",
-    )
-    auc_roc: Optional[float] = Field(
-        None,
-        ge=0.0,
-        le=1.0,
-        description="Area under ROC curve",
-    )
-    test_dataset_size: Optional[int] = Field(
-        None,
-        ge=0,
-        description="Number of cases in test dataset",
-    )
-    comparison_to_predicate: Optional[str] = Field(
-        None,
-        description="Comparison result (e.g., 'Non-inferior')",
-    )
-    additional_metrics: dict[str, Any] = Field(
-        default_factory=dict,
-        description="Additional performance metrics",
-    )
+# =============================================================================
+# Patient and Dataset Models (shared by Phase 2D and 2E)
+# =============================================================================
 
 
 class PatientDemographics(AshMaticsBaseModel):
@@ -192,6 +216,349 @@ class DatasetCharacteristics(AshMaticsBaseModel):
         default_factory=dict,
         description="Additional dataset characteristics",
     )
+
+
+# =============================================================================
+# Phase 2E Performance Data Models (REQ-3)
+# =============================================================================
+
+
+class PerformanceMetric(AshMaticsBaseModel):
+    """
+    Individual performance metric with statistical context and stratification.
+
+    Addresses REQ-3.1 (Performance Metrics Extraction) from Phase 2E design plan.
+    Captures quantitative performance metrics with confidence intervals, p-values,
+    and stratification dimensions for comparative effectiveness analysis.
+
+    Example:
+        >>> metric = PerformanceMetric(
+        ...     metric_name="sensitivity",
+        ...     metric_type=MetricType.SENSITIVITY,
+        ...     value=0.906,
+        ...     ci_lower=0.822,
+        ...     ci_upper=0.959,
+        ...     sample_size=184,
+        ...     stratification={"study": "pivotal", "site": "multi_site"},
+        ...     source_table="table_18"
+        ... )
+    """
+
+    metric_name: str = Field(
+        ...,
+        description="Metric name as appears in document (e.g., 'sensitivity', 'DICE', 'AUC')",
+    )
+    metric_type: Optional[MetricType] = Field(
+        None,
+        description="Standardized metric type for querying across devices",
+    )
+    value: float = Field(
+        ...,
+        description="Metric value (proportion 0-1 for percentages, raw value otherwise)",
+    )
+    unit: Optional[str] = Field(
+        None,
+        description="Unit if applicable (e.g., 'seconds', 'mm', 'minutes')",
+    )
+
+    # Statistical measures (REQ-3.3)
+    ci_lower: Optional[float] = Field(
+        None,
+        description="95% confidence interval lower bound",
+    )
+    ci_upper: Optional[float] = Field(
+        None,
+        description="95% confidence interval upper bound",
+    )
+    p_value: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="p-value for statistical testing",
+    )
+    standard_error: Optional[float] = Field(
+        None,
+        ge=0.0,
+        description="Standard error of metric",
+    )
+    sample_size: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Sample size (N) for this metric calculation",
+    )
+
+    # Stratification (REQ-3.4)
+    stratification: Optional[dict[str, str]] = Field(
+        None,
+        description="Stratification dimensions (e.g., {'gender': 'female', 'age_group': '50-70', 'study': 'pivotal'})",
+    )
+
+    # Source attribution (REQ-8.1)
+    source_table: Optional[str] = Field(
+        None,
+        description="Source table ID (e.g., 'table_18')",
+    )
+    source_section: Optional[str] = Field(
+        None,
+        description="Source section if extracted from narrative text",
+    )
+
+
+class TestDataset(AshMaticsBaseModel):
+    """
+    Characteristics of a validation/test dataset.
+
+    Addresses REQ-3.2 (Validation Dataset Characteristics) from Phase 2E design plan.
+    Captures dataset size, demographics, clinical characteristics, and relationship
+    to training data for proper contextualization of performance results.
+
+    Example:
+        >>> dataset = TestDataset(
+        ...     dataset_name="Pivotal Study Cohort",
+        ...     dataset_size=184,
+        ...     data_source="3 clinical sites (2 US, 1 OUS)",
+        ...     multi_site=True,
+        ...     num_sites=3,
+        ...     ground_truth_method="Consensus of 3 board-certified radiologists"
+        ... )
+    """
+
+    dataset_name: Optional[str] = Field(
+        None,
+        description="Dataset name/description (e.g., 'Pivotal Study Cohort', 'External Validation Set')",
+    )
+    dataset_size: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Total number of cases/images/patients",
+    )
+    data_source: Optional[str] = Field(
+        None,
+        description="Source institutions or description",
+    )
+    multi_site: Optional[bool] = Field(
+        None,
+        description="Whether data collected from multiple sites",
+    )
+    num_sites: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Number of sites if multi-site",
+    )
+    collection_period: Optional[str] = Field(
+        None,
+        description="Time period for data collection (e.g., 'Jan 2020 - Dec 2022')",
+    )
+    ground_truth_method: Optional[str] = Field(
+        None,
+        description="Ground truth/reference standard methodology",
+    )
+    imaging_modality: Optional[str] = Field(
+        None,
+        description="Imaging modality/acquisition parameters",
+    )
+
+    # Patient demographics (REQ-3.2)
+    patient_demographics: Optional[PatientDemographics] = Field(
+        None,
+        description="Patient demographics for validation dataset",
+    )
+
+    # Clinical characteristics
+    disease_prevalence: Optional[str] = Field(
+        None,
+        description="Disease prevalence in dataset (e.g., '45% positive cases')",
+    )
+    inclusion_criteria: Optional[str] = Field(
+        None,
+        description="Inclusion criteria for dataset",
+    )
+    exclusion_criteria: Optional[str] = Field(
+        None,
+        description="Exclusion criteria for dataset",
+    )
+
+    # Relationship to training data
+    independent_from_training: Optional[bool] = Field(
+        None,
+        description="Whether dataset is independent from training data (temporal, site, or patient separation)",
+    )
+
+
+class ValidationStudy(AshMaticsBaseModel):
+    """
+    Validation study design and characteristics.
+
+    Addresses REQ-3.7 (Test Methodology and Study Design) from Phase 2E design plan.
+    Captures study type, design elements (blinding, control), and links to
+    test dataset and acceptance criteria.
+
+    Example:
+        >>> study = ValidationStudy(
+        ...     study_name="Pivotal Study",
+        ...     study_type=StudyType.PIVOTAL_STUDY,
+        ...     prospective=False,
+        ...     blinding="single_blind",
+        ...     num_readers=5,
+        ...     num_cases=184,
+        ...     test_dataset=TestDataset(dataset_size=184, multi_site=True),
+        ...     acceptance_criteria="Sensitivity and specificity >= 80%",
+        ...     acceptance_met=True
+        ... )
+    """
+
+    study_name: Optional[str] = Field(
+        None,
+        description="Study name (e.g., 'Pivotal Study', 'Pilot Study', 'Reader Study')",
+    )
+    study_type: StudyType = Field(
+        ...,
+        description="Type of validation study",
+    )
+    study_description: Optional[str] = Field(
+        None,
+        description="Brief study description",
+    )
+
+    # Study design (REQ-3.7)
+    prospective: Optional[bool] = Field(
+        None,
+        description="Prospective (True) vs retrospective (False) study design",
+    )
+    blinding: Optional[str] = Field(
+        None,
+        description="Blinding approach (e.g., 'single_blind', 'double_blind', 'unblinded')",
+    )
+    control_type: Optional[str] = Field(
+        None,
+        description="Control/comparison type (e.g., 'ground_truth', 'predicate', 'reader_alone')",
+    )
+
+    # MRMC-specific fields
+    num_readers: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Number of readers for MRMC study",
+    )
+    num_cases: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Number of cases evaluated",
+    )
+
+    # Test dataset
+    test_dataset: Optional[TestDataset] = Field(
+        None,
+        description="Validation dataset characteristics",
+    )
+
+    # Acceptance criteria (REQ-3.6)
+    acceptance_criteria: Optional[str] = Field(
+        None,
+        description="Acceptance criteria for study (e.g., 'Sensitivity >= 85%')",
+    )
+    acceptance_met: Optional[bool] = Field(
+        None,
+        description="Whether acceptance criteria were met",
+    )
+
+    # Source attribution
+    source_section: Optional[str] = Field(
+        None,
+        description="Source section in document",
+    )
+
+
+class PerformanceTestResults(AshMaticsBaseModel):
+    """
+    Comprehensive performance testing results container.
+
+    Enhanced in Phase 2E (2025-11-25) with structured validation studies,
+    detailed performance metrics with stratification, and predicate comparison.
+    Maintains backward compatibility with Phase 1 legacy fields.
+
+    Addresses REQ-3 (Validation Results Extraction) from Phase 2E design plan.
+
+    Example:
+        >>> results = PerformanceTestResults(
+        ...     validation_studies=[
+        ...         ValidationStudy(study_name="Pilot Study", study_type=StudyType.PILOT_STUDY),
+        ...         ValidationStudy(study_name="Pivotal Study", study_type=StudyType.PIVOTAL_STUDY)
+        ...     ],
+        ...     performance_metrics=[
+        ...         PerformanceMetric(metric_name="sensitivity", value=0.906, ci_lower=0.822, ci_upper=0.959)
+        ...     ],
+        ...     extraction_confidence=85.0
+        ... )
+    """
+
+    # Phase 2E: Validation studies (REQ-3.7)
+    validation_studies: list[ValidationStudy] = Field(
+        default_factory=list,
+        description="List of validation studies (pilot, pivotal, reader study, etc.)",
+    )
+
+    # Phase 2E: Performance metrics (REQ-3.1, REQ-3.4)
+    performance_metrics: list[PerformanceMetric] = Field(
+        default_factory=list,
+        description="All extracted performance metrics with stratification",
+    )
+
+    # Phase 2E: Predicate comparison (REQ-3.5)
+    comparison_to_predicate: Optional[str] = Field(
+        None,
+        description="Performance comparison to predicate device (e.g., 'Non-inferior', 'Superior')",
+    )
+    predicate_metrics: list[PerformanceMetric] = Field(
+        default_factory=list,
+        description="Predicate device performance metrics for comparison",
+    )
+
+    # Legacy fields (Phase 1 compatibility) - populated for backward compatibility
+    sensitivity: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="Overall sensitivity (legacy field - use performance_metrics for detailed data)",
+    )
+    specificity: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="Overall specificity (legacy field - use performance_metrics for detailed data)",
+    )
+    auc_roc: Optional[float] = Field(
+        None,
+        ge=0.0,
+        le=1.0,
+        description="Overall AUC (legacy field - use performance_metrics for detailed data)",
+    )
+    test_dataset_size: Optional[int] = Field(
+        None,
+        ge=0,
+        description="Overall test dataset size (legacy field - use validation_studies for detailed data)",
+    )
+    additional_metrics: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Additional unstructured metrics (legacy field)",
+    )
+
+    # Phase 2E: Extraction metadata
+    extraction_confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Confidence score for extracted performance data (0-100)",
+    )
+    source_tables: list[str] = Field(
+        default_factory=list,
+        description="List of table IDs from which performance data was extracted",
+    )
+
+
+# =============================================================================
+# Phase 2D Training Data Models (REQ-2)
+# =============================================================================
 
 
 class TrainingDataCharacteristics(AshMaticsBaseModel):
@@ -287,13 +654,25 @@ class PredicatesSection(SectionBase):
 
 
 class PerformanceTestingSection(SectionBase):
-    """Performance testing section with results and training data."""
+    """
+    Performance testing section with comprehensive results and training data.
+
+    Enhanced in Phase 2E (2025-11-25) with structured validation studies,
+    detailed performance metrics with statistical context and stratification.
+
+    Contains:
+    - test_results: Comprehensive performance test results (Phase 2E, REQ-3)
+      - validation_studies: Pilot, pivotal, reader studies with design details
+      - performance_metrics: All metrics with CIs, p-values, stratification
+      - predicate_metrics: Predicate device performance for comparison
+    - training_data: AI/ML training data characteristics (Phase 2D, REQ-2)
+    """
 
     title: str = Field(default="Performance Testing", description="Section title")
     order: int = Field(default=4, description="Section order")
     test_results: Optional[PerformanceTestResults] = Field(
         None,
-        description="Structured test results",
+        description="Comprehensive structured performance test results (Phase 2E, REQ-3)",
     )
     training_data: Optional[TrainingDataCharacteristics] = Field(
         None,

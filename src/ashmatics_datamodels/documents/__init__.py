@@ -57,6 +57,11 @@ from ashmatics_datamodels.documents.evidence import (
 
 # Regulatory documents
 from ashmatics_datamodels.documents.regulatory import (
+    # Phase 2E enums
+    MetricType,
+    StudyType,
+    # Phase 2E models
+    PerformanceMetric,
     PerformanceTestResults,
     PredicateDeviceInfo,
     RegulatoryContent,
@@ -65,6 +70,12 @@ from ashmatics_datamodels.documents.regulatory import (
     RegulatoryMetadataContent,
     RegulatorySummary,
     StructuredIndication,
+    TestDataset,
+    TrainingDataCharacteristics,
+    ValidationStudy,
+    # Phase 2D models
+    DatasetCharacteristics,
+    PatientDemographics,
 )
 
 # AI Model cards
@@ -145,6 +156,16 @@ __all__ = [
     "StructuredIndication",
     "PredicateDeviceInfo",
     "PerformanceTestResults",
+    # Phase 2E Performance Data Models
+    "StudyType",
+    "MetricType",
+    "PerformanceMetric",
+    "TestDataset",
+    "ValidationStudy",
+    # Phase 2D Training Data Models
+    "TrainingDataCharacteristics",
+    "DatasetCharacteristics",
+    "PatientDemographics",
     # Model Cards
     "ModelCardMetadataContent",
     "ModelCardContent",
