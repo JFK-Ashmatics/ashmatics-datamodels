@@ -32,9 +32,9 @@ Vocabulary: https://open.fda.gov/device/510k/
 
 from datetime import date
 from enum import Enum
-from typing import Any, Optional
+from typing import Annotated, Any, Optional, Union
 
-from pydantic import Field
+from pydantic import Discriminator, Field, Tag
 
 from ashmatics_datamodels.common.base import AshMaticsBaseModel
 from ashmatics_datamodels.documents.base import (
@@ -764,6 +764,70 @@ class RegulatoryMetadataContent(MetadataContentBase):
 
 
 # =============================================================================
+# Section Type Discriminator for Serialization
+# =============================================================================
+
+
+def _get_section_type(v: Any) -> str:
+    """
+    Discriminator function for RegulatorySection union.
+
+    Used by Pydantic to determine which section subclass to use during
+    serialization, ensuring subclass-specific fields (like test_results,
+    training_data, predicates) are preserved in the output.
+    """
+    if isinstance(v, dict):
+        # During deserialization, use title to discriminate
+        title = v.get("title", "")
+        if "Sponsor" in title:
+            return "sponsor"
+        elif "Device Description" in title:
+            return "device_description"
+        elif "Indications" in title:
+            return "indications"
+        elif "Predicate" in title:
+            return "predicates"
+        elif "Performance" in title or "Testing" in title:
+            return "performance_testing"
+        elif "Substantial Equivalence" in title:
+            return "substantial_equivalence"
+        else:
+            return "raw"
+    # During serialization, use class type
+    if isinstance(v, SponsorSection):
+        return "sponsor"
+    elif isinstance(v, DeviceDescriptionSection):
+        return "device_description"
+    elif isinstance(v, IndicationsSection):
+        return "indications"
+    elif isinstance(v, PredicatesSection):
+        return "predicates"
+    elif isinstance(v, PerformanceTestingSection):
+        return "performance_testing"
+    elif isinstance(v, SubstantialEquivalenceSection):
+        return "substantial_equivalence"
+    elif isinstance(v, RawSection):
+        return "raw"
+    return "raw"  # Default fallback
+
+
+# Union type for all regulatory section types
+# This ensures Pydantic serializes subclass-specific fields correctly
+RegulatorySection = Annotated[
+    Union[
+        Annotated[SponsorSection, Tag("sponsor")],
+        Annotated[DeviceDescriptionSection, Tag("device_description")],
+        Annotated[IndicationsSection, Tag("indications")],
+        Annotated[PredicatesSection, Tag("predicates")],
+        Annotated[PerformanceTestingSection, Tag("performance_testing")],
+        Annotated[SubstantialEquivalenceSection, Tag("substantial_equivalence")],
+        Annotated[RawSection, Tag("raw")],
+    ],
+    Discriminator(_get_section_type),
+]
+
+
+# =============================================================================
 # Regulatory-Specific Content
 # =============================================================================
 
@@ -779,7 +843,7 @@ class RegulatoryContent(ContentBase):
     for complete document preservation and traceability.
     """
 
-    sections: dict[str, SectionBase] = Field(
+    sections: dict[str, RegulatorySection] = Field(  # type: ignore[assignment]
         default_factory=lambda: {
             "0_sponsor": SponsorSection(
                 title="Sponsor Information", order=0
