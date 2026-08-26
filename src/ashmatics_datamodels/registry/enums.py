@@ -169,7 +169,15 @@ class DeploymentStatus(str, Enum):
     """
     Lifecycle stage of one deployment — an attribute of the org × application
     edge (``forge:deploysApplication``), never of the product itself. Binds to
-    ``ash:DeploymentStatusScheme`` (ontology v2.3.0 / ADR-007, ``ash:ds-*``).
+    ``ash:DeploymentStatusScheme`` (ontology v2.4.0 / ADR-007 + ADR-008,
+    ``ash:ds-*``).
+
+    ``INVESTIGATIONAL`` (ADR-008) is a deployment running under an IRB-reviewed
+    research protocol. It is drawn against ``PILOT`` on **oversight, not scale**:
+    a pilot is an operational trial of fit the organization decides on its own,
+    while an investigational deployment carries human-subjects protections and
+    consent obligations. Entries recorded as ``PILOT`` before v2.4.0 may be
+    mis-stated; review with the site rather than migrating automatically.
 
     Orthogonal to :class:`RegistryDeployment` (integration topology). Not yet
     adopted by coreapp's registry model, whose ``RegistryEntryStatus`` stays
@@ -180,6 +188,7 @@ class DeploymentStatus(str, Enum):
     EVALUATING = "evaluating"
     PILOT = "pilot"
     VALIDATING = "validating"
+    INVESTIGATIONAL = "investigational"
     LIVE = "live"
     PAUSED = "paused"
     RETIRED = "retired"

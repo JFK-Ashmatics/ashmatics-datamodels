@@ -110,6 +110,10 @@ class RegulatoryPathway(str, Enum):
     EUA = "EUA"
     EXEMPT = "Exempt"
     CE_MARK = "CE"
+    # ontology ADR-008: the scheme enumerated market pathways only. An IDE device
+    # is lawfully in clinical use and is emphatically NOT Exempt, which denotes a
+    # Class I device freely marketable under general controls.
+    IDE = "IDE"
 
 
 class ContentType(str, Enum):

@@ -14,7 +14,7 @@
 
 [project]
 name = "ashmatics-datamodels"
-version = "0.8.1"  # +RegistryDeployment: ehr/enterprise_system/agentic_platform (ASHFORGE-536)
+version = "0.8.2"  # ontology ADR-008 / seed v2.4.0: OutputForm +4, DeploymentStatus +investigational, RegulatoryPathway +IDE
 description = "Canonical Pydantic data models for AshMatics healthcare applications - FDA vocabulary, regulatory schemas, and clinical AI use cases"
 authors = [
     {name = "Asher Informatics PBC", email = "info@asherinformatics.com"}

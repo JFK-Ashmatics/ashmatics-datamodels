@@ -85,10 +85,17 @@ def test_deployment_values_frozen_in_order():
 
 
 def test_deployment_status_values_frozen():
+    # Order is the lifecycle, so position is a claim. `investigational` sits after
+    # `validating` and before `live` because it is a stage a deployment can be in
+    # before becoming standard of care — not because every investigational
+    # deployment goes live; many do not. Added by ontology ADR-008 (seed v2.4.0):
+    # an IRB-reviewed research deployment, distinguished from `pilot` by oversight
+    # rather than scale.
     assert [m.value for m in DeploymentStatus] == [
         "evaluating",
         "pilot",
         "validating",
+        "investigational",
         "live",
         "paused",
         "retired",

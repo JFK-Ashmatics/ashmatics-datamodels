@@ -157,6 +157,13 @@ class OutputForm(str, Enum):
     QUESTION_ANSWER = "of-question-answer"
     RECOMMENDATION = "of-recommendation"
     PRIOR_AUTH_DECISION = "of-prior-auth-decision"
+    # ontology ADR-008 (seed v2.4.0): the scheme had no continuous probability or
+    # score, though cp-risk-stratification is a populated purpose. PROBABILITY is
+    # distinct from CATEGORICAL, whose score is an enumerated grade.
+    PROBABILITY = "of-probability"
+    RISK_SCORE = "of-risk-score"
+    LOCALIZATION = "of-localization"
+    UNCERTAINTY_MAP = "of-uncertainty-map"
 
 
 class InputModality(str, Enum):
