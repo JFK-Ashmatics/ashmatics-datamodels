@@ -28,9 +28,10 @@ Usage:
     from ashmatics_datamodels.methods import MethodDefinition, MethodRegistry
     from ashmatics_datamodels.artifacts import BaseArtifact, InstanceArtifact
     from ashmatics_datamodels.registry import RegistryCategory, RegistryAIType
+    from ashmatics_datamodels.controls import MechanismAvailabilityRecord, AssuranceMode
 """
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 __author__ = "Asher Informatics PBC"
 
 from ashmatics_datamodels.common import AshMaticsBaseModel, TimestampedModel
