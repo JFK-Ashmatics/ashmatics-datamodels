@@ -14,7 +14,7 @@
 
 [project]
 name = "ashmatics-datamodels"
-version = "0.8.2"  # ontology ADR-008 / seed v2.4.0: OutputForm +4, DeploymentStatus +investigational, RegulatoryPathway +IDE
+version = "0.9.0"  # ontology ADR-009 / v0.12.0: controls module — five control axes + MechanismAvailabilityRecord (ASHFORGE-627)
 description = "Canonical Pydantic data models for AshMatics healthcare applications - FDA vocabulary, regulatory schemas, and clinical AI use cases"
 authors = [
     {name = "Asher Informatics PBC", email = "info@asherinformatics.com"}

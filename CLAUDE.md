@@ -10,7 +10,7 @@ This is **ashmatics-core-datamodels**, a canonical Pydantic data models library 
 - ashmatics-knowledgebase-tools (ingestion pipelines)
 - AI Watch applications
 
-Version: 0.8.0 as of 2026-08-03 — `pyproject.toml` and the README changelog are authoritative, not this line.
+Version: 0.9.0 as of 2026-09-02 — `pyproject.toml` and the README changelog are authoritative, not this line.
 
 ## Development Commands
 
@@ -116,6 +116,10 @@ The library follows a domain-driven structure:
 - **artifacts/** - aigov-framework ADR-006 artifact-plane contracts (ASHKBAPP-99)
   - `base_content.py`: KB base-content side (`ToolRef`, `PracticeView`, `BaseArtifact`, `CompiledView`)
   - `instances.py`: tenant-instantiation side (`DecisionRecord`, `ExportRecord`, `InstanceArtifact`, `InstanceIndex`)
+
+- **controls/** - CHAR controls-catalog axes and the platform availability record (ontology ADR-009)
+  - `enums.py`: `ControlMaturity`, `AssuranceMode`, `EvidenceMechanism`, `MechanismAvailability`, `AssuranceCadence` (all `skos:notation`-bound, guard-checked both ways), `Edition` (PRODUCT, coreapp ADR-039), ordinal tables, `YIELDS_ASSURANCE_MODE`
+  - `availability.py`: `MechanismAvailabilityRecord` — contract for asher-infra `platform-capabilities/mechanism-availability.yaml`; `achievable_ceiling()` / `diagnose_gap()` implement the three-gate ceiling once for coreapp and the framework
 
 - **registry/** - AI System Registry rule vocabularies (coreapp ADR-036 §2.5; ASHFORGE-412)
   - `enums.py`: the stored registry vocabularies (`RegistryCategory`, `RegistryAIType`, `SourcingChannel`, `RegistryDeployment`), `DeploymentStatus` (per-deployment lifecycle, ontology ADR-007), and derived vocabularies (`RegistrySourcing` obligation triad, `PortfolioSizeBucket`, `OrgSourcingMix`)
