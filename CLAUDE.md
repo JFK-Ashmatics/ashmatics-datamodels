@@ -266,8 +266,10 @@ Update both `pyproject.toml` version and `src/ashmatics_datamodels/__init__.py` 
 
 ## Release & versioning
 
-Conventions live in `ashmatics-engineering` ("the Asher Way") — treat as authoritative.
+Conventions live in `asher-engineering` ("the Asher Way") — treat as authoritative.
 
-- **Tags:** `<sku>/vMAJOR.MINOR.PATCH` — e.g. `lcr/v1.0.0`. SKU is a path-like prefix.
+- **Per-repo tags:** bare SemVer — e.g. `v0.12.0`. **No prefix, no rc suffix.** Per-repo versions move independently of the platform (asher-engineering ADR-0007; `conventions/versioning-and-tagging.md`, "Per-repo versions vs. platform version").
+- **Platform tags are a different thing and are not cut here:** `<increment>/vMAJOR.MINOR.PATCH`, e.g. `26-R06/v0.5.0`. The increment (= the ASHFORGE Jira Fix Version) is a path-like prefix, **never** a SemVer segment, and the quarterly Release Train token never appears in a tag.
+- **Availability is a manifest field, never a token in a name.** `lcr`, `ga`, `enterprise` and `beta` do not appear in any tag.
 - **Branching:** trunk-based. No `release/*` branches in this repo.
-- **Package SemVer** (bumped in `pyproject.toml` + `__init__.py` per the Version Bumping section above) is this library's own version. FORGE platform release alignment is handled separately via the manifest in `ashmatics-infra/release-manifests/`.
+- **Package SemVer** (bumped in `pyproject.toml` + `__init__.py` per the Version Bumping section above) is this library's own version. FORGE platform release alignment is handled separately via the manifest in `asher-infra/release-manifests/` (ADR002).
