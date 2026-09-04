@@ -72,12 +72,10 @@ ashmatics_datamodels/
 
 ## Current Version
 
-**v0.2.0** - Phase 2 in progress
+**v0.10.0** — see the changelog in `README.md`, which is authoritative alongside `pyproject.toml`.
 
-- ✅ Phase 1 Complete: FDA core schemas, use cases, regulators
-- 🚧 Phase 2 Active: MongoDB document schemas
-- 📋 Phase 3 Planned: Ontology consolidation
-- 📋 Phase 4 Planned: Evidence quality metrics
+The phase plan this section used to track was completed and superseded; module-level status now
+lives with each module rather than in a single roadmap here.
 
 ## Getting Started
 
