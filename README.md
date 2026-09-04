@@ -1,10 +1,18 @@
 # AshMatics Core DataModels
 
-**Version: 0.8.1**
+**Version: 0.10.0**
 
 Canonical Pydantic data models for AshMatics healthcare applications.
 
 ## Changelog
+
+### v0.10.0 (2026-09-04) — ASHFORGE-604 — the AI failure mode taxonomy contracts
+- Added the `failure_modes` module: `AIFailureMode`, the ten-class vocabulary for **how a governed AI system fails**, bound to `ash:AIFailureModeScheme` (minted in ontology 0.14.0 / v2.7.0 for this release). CHAR had no content for "how does this class of AI fail, and what follows from that failure" — zero matches for fail / degrade / mode / robust / reliability / behaviour across all eleven process domains' base practices, so a site convening subject matter experts got a method name and a blank page.
+- `FailureModeTaxonomy` is the document contract for the aigov-framework `failure_mode_taxonomy.yaml`, the way `MethodRegistry` is for `method_registry.yaml`. Per aigov-framework ADR-018 D3 the taxonomy is **reference content resolved at SOP junctions**, not a base practice and not a method: `rm-wizard-config.yaml` RM-2-Q5 keeps offering FMEA, FTA, HAZOP, PHA and STAMP/STPA, and this is what the chosen method is applied to.
+- `Repercussion` carries the half that makes a taxonomy usable beside a hazard analysis — what an operator, an affected person or the organization actually experiences — with **separate clinical and non-clinical framings** and a validator refusing an audience that has neither. Non-clinical AI is in scope by design: an administrative scheduling system fails differently and the repercussion is not patient harm.
+- `FailureModeApplicability` reuses the ash facet enums with the same zero-free-string rule as method applicability. It differs in one way worth knowing: an omitted axis means *unrestricted*, because most failure classes are reachable by most systems and the axes exist to exclude the ones that are not (confabulation has no meaning for a system emitting a category).
+- `ActionAuthority` surfaces here for the first time (`ash:ActionAuthorityScheme`, ontology 0.13.0 / ASHFORGE-638) because failure-mode applicability conditions on it: a system that acts closes a feedback loop with no human step in between.
+- Requires `ashmatics-ontology >= 0.14.0`. `tests/failure_modes/test_ontology_binding.py` checks all ten concepts resolve, and its reverse-completeness check is **load-bearing here rather than advisory** — `AIFailureModeScheme` is a facet scheme, not an open registry like `GovernanceMethodScheme`, so a class minted in the ontology with no enum member means the taxonomy cannot express it.
 
 ### v0.9.0 (2026-09-02) — ASHFORGE-627 — controls axis vocabularies and the platform availability record
 - Added the `controls` module: the five CHAR control axes as ontology-bound enums (`ControlMaturity`, `AssuranceMode`, `EvidenceMechanism`, `MechanismAvailability`, `AssuranceCadence`), each value the `skos:notation` of its `ashcai:*Scheme` concept, with the ordinal tables and the `yieldsAssuranceMode` edges mirrored and guard-checked both directions against the TTL (`tests/controls/test_ontology_binding.py`). `Edition` (essentials / enterprise, coreapp ADR-039) rides along as PRODUCT vocabulary with a guard that fires if a scheme for it ever lands.

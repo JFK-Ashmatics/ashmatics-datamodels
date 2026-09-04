@@ -29,6 +29,7 @@ Usage:
     from ashmatics_datamodels.artifacts import BaseArtifact, InstanceArtifact
     from ashmatics_datamodels.registry import RegistryCategory, RegistryAIType
     from ashmatics_datamodels.controls import MechanismAvailabilityRecord, AssuranceMode
+    from ashmatics_datamodels.failure_modes import AIFailureMode, FailureModeTaxonomy
 """
 
 __version__ = "0.9.0"
