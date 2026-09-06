@@ -60,8 +60,9 @@ from .enums import (
 METHOD_ID_PATTERN = r"^mth://[a-z0-9_]+(\.[a-z0-9_]+)+$"
 METHOD_SET_ID_PATTERN = r"^mset://[a-z0-9_]+(\.[a-z0-9_]+)+$"
 JUNCTION_REF_PATTERN = r"^SOP-[A-Z]+-\d{2}\.S[\d.]+$"
-TOOL_TOKEN_PATTERN = r"^tool://[a-z0-9_]+(\.[a-z0-9_]+)+$"
 POLICY_TOKEN_PATTERN = r"^\{\{[A-Za-z0-9_.]+\}\}$"
+#updated tool token pattern post the changes of how we tag tools, 2026-09-06
+TOOL_TOKEN_PATTERN = r"^\{\{tool\.[A-Za-z0-9_]+\}\}$"
 
 # Annotated string types so list items validate per element.
 MethodId = Annotated[str, StringConstraints(pattern=METHOD_ID_PATTERN)]
@@ -231,8 +232,8 @@ class MethodDefinition(AshMaticsBaseModel):
     )
     executable_by: list[ToolToken] = Field(
         default_factory=list,
-        description="tool:// capability tokens (Suite modules) that execute "
-        "this method; empty when execution is manual/external. Tools execute "
+        description="tool capability tokens that execute "
+        "this method; empty when execution is manual/external. These can be in FORGE, external tools, or 3P.Tools execute "
         "methods, they are not methods.",
     )
     phase: MethodPhase = Field(

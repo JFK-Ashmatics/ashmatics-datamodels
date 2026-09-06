@@ -120,7 +120,7 @@ def test_compiled_view_nests_practice_views():
             PracticeView(
                 id="PV.BP01a",
                 title="Use case identification",
-                tool_refs=[ToolRef(token="tool://kb.search")],
+                tool_refs=[ToolRef(token="{{tool.evidenceRepo}}")],
             )
         ],
     )

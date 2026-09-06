@@ -56,7 +56,7 @@ VALID_METHOD = {
     "family": "group_fairness",
     "description": "Compare discrimination across strata.",
     "junction_refs": ["SOP-EF-01.S1"],
-    "executable_by": ["tool://bias.assess"],
+    "executable_by": ["{{tool.biasAssess}}"],
     "phase": "both",
     "applicability": {
         "ai_paradigm": ["ap-predictive"],
