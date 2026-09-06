@@ -32,7 +32,7 @@ Usage:
     from ashmatics_datamodels.failure_modes import AIFailureMode, FailureModeTaxonomy
 """
 
-__version__ = "0.10.0"
+__version__ = "0.11.0"
 __author__ = "Asher Informatics PBC"
 
 from ashmatics_datamodels.common import AshMaticsBaseModel, TimestampedModel
