@@ -28,6 +28,7 @@ Usage::
         RegistryDeployment,
         is_clinical_use,
         sourcing_obligation,
+        system_class,
     )
 """
 
@@ -37,6 +38,7 @@ from .derive import (
     org_sourcing_mix,
     portfolio_size_bucket,
     sourcing_obligation,
+    system_class,
 )
 from .enums import (
     DeploymentStatus,
@@ -47,6 +49,7 @@ from .enums import (
     RegistryDeployment,
     RegistrySourcing,
     SourcingChannel,
+    SystemClass,
 )
 
 __all__ = [
@@ -58,10 +61,12 @@ __all__ = [
     "DeploymentStatus",
     "PortfolioSizeBucket",
     "OrgSourcingMix",
+    "SystemClass",
     "is_clinical_use",
     "portfolio_size_bucket",
     "org_sourcing_mix",
     "sourcing_obligation",
+    "system_class",
     "REGISTRY_BINDINGS",
     "BindingStatus",
     "SchemeBinding",

@@ -18,9 +18,10 @@ AI System Registry rule vocabularies (ASHFORGE-412, ADR-036 §2.5).
 The vocabularies the AI System Registry writes and the governance rule files
 will read. Stored per-entry: category, AI type, sourcing channel, deployment
 topology (plus ``DeploymentStatus``, bound ahead of coreapp adoption).
-Derived, never stored: the SRS-REG-15a obligation triad (``RegistrySourcing``)
-and the two org-level rollups (``PortfolioSizeBucket``, ``OrgSourcingMix``) —
-their derivations live in :mod:`.derive`. This module is the single source of
+Derived, never stored: the SRS-REG-15a obligation triad (``RegistrySourcing``),
+the two org-level rollups (``PortfolioSizeBucket``, ``OrgSourcingMix``), and the
+CHAR content selector (``SystemClass``, ADR-015) — their derivations live in
+:mod:`.derive`. This module is the single source of
 truth: coreapp's Django ``TextChoices`` (``core/models/ai_registry.py``) and
 the frontend's ``aiRegistryTaxonomies.ts`` are downstream mirrors pinned by
 parity tests, and scoring-rule YAMLs must test only these values.
@@ -32,8 +33,8 @@ that moves data migrations and rule files with it — never a rename
 Ontology anchoring is declared in :mod:`.bindings` and enforced by
 ``tests/registry/test_ontology_binding.py``. Current state (ontology v2.3.0 /
 ADR-007): category, AI type, sourcing channel, and deployment status are
-BOUND; deployment topology and the derived vocabularies are deliberately
-product-level. No binding is PENDING.
+BOUND; deployment topology and the derived rollups are deliberately
+product-level. ``SystemClass`` is PENDING (ADR-015 open item 5).
 """
 
 from enum import Enum
@@ -74,6 +75,57 @@ class RegistryCategory(str, Enum):
     CLINICAL = "clinical"
     OPERATIONAL = "operational"
     ADMINISTRATIVE = "administrative"
+
+
+class SystemClass(str, Enum):
+    """
+    CHAR system class — *what the system does for the organization*, as CHAR's
+    content layer asks it (ADR-015). DERIVED from :class:`RegistryCategory` by
+    :func:`ashmatics_datamodels.registry.derive.system_class`, never stored:
+    the registry stays the single written source, exactly as ``clinical_use``
+    and the obligation triad do.
+
+    CHAR splits its corpus into a scope-neutral **core** and **system classes**
+    that specialize it. The class is the selector — ``{{system.class}}`` in the
+    Conditional Logic Framework, ``class_applicability`` on registry entries —
+    so a two-value axis is what the content needs:
+
+    - ``CLINICAL`` — ``RegistryCategory.CLINICAL``. The flagship class; the
+      clinical content CHAR ships today.
+    - ``ADMINISTRATIVE_OPERATIONAL`` — ``RegistryCategory.OPERATIONAL`` and
+      ``RegistryCategory.ADMINISTRATIVE``, collapsed. ADR-015 open item 1 keeps
+      these one class id until the second class's content plan shows whether
+      revenue cycle, supply chain and facilities actually diverge. The three-way
+      :class:`RegistryCategory` remains the stored truth, so splitting later
+      widens this derivation rather than re-classifying any entry.
+
+    Three things this is NOT, each of which it has already been mistaken for:
+
+    - **Not a risk tier.** ADR-015 D1 forbids reading "administrative" as
+      "low risk"; a prior-authorization denial agent is administrative and
+      high-risk. Risk tiering operates *within* a class.
+    - **Not ``modelClass``.** ``{{system.class}}`` and ``{{system.modelClass}}``
+      sit side by side in the CLF ``system`` scope and are unrelated axes:
+      ``modelClass`` is the *technique* (cnn, transformer, tree_ensemble).
+      ADR-015's Consequences names reviewer confusion between the two as a real
+      failure mode.
+    - **Not agentic.** How the system *acts* is
+      :class:`RegistryAIType` / ``{{system.actionAuthority}}``, orthogonal to
+      what it does. An ambient scribe that files orders is clinical and agentic.
+
+    Values are kebab-case (ADR-015 D4, one canonical spelling), which is why
+    ``ADMINISTRATIVE_OPERATIONAL`` is ``"administrative-operational"`` and not
+    the snake_case used elsewhere in this module — CHAR's registry validates
+    class ids as kebab-case and this enum is the contract for those ids.
+
+    Deliberately unanchored for now: ADR-015 open item 5 defers minting
+    ``ashcai:SystemClassScheme`` until the second class's ids are final, since a
+    notation fixed in the data plane (ADR-006) is expensive to split. Declared
+    ``PENDING`` in :mod:`.bindings` so the gap stays visible.
+    """
+
+    CLINICAL = "clinical"
+    ADMINISTRATIVE_OPERATIONAL = "administrative-operational"
 
 
 class RegistryAIType(str, Enum):

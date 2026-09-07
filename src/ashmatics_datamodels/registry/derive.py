@@ -15,11 +15,13 @@
 """
 Derivations over the registry vocabularies (ASHFORGE-412 AC-2 / AC-3).
 
-Four quantities that older specs treated as stored fields are defined here as
+Five quantities that older specs treated as stored fields are defined here as
 pure functions instead, so the registry stays the single written source and
 every consumer computes the same answer:
 
 - ``clinical_use`` (SRS-REG-03's boolean) — derived from the category triad;
+- ``system_class`` (CHAR's ``{{system.class}}``, ADR-015) — derived from the
+  same triad, collapsed two ways instead of to a boolean;
 - the obligation triad (SRS-REG-15a) — derived from the sourcing channel;
 - ``ai_portfolio_size`` — derived from the active-entry count;
 - ``ai_sourcing`` (org-level) — derived from per-system obligation values.
@@ -36,6 +38,7 @@ from .enums import (
     RegistryCategory,
     RegistrySourcing,
     SourcingChannel,
+    SystemClass,
 )
 
 
@@ -50,6 +53,34 @@ def is_clinical_use(category: RegistryCategory | str | None) -> bool:
     if category is None:
         return False
     return RegistryCategory(category) is RegistryCategory.CLINICAL
+
+
+def system_class(category: RegistryCategory | str | None) -> SystemClass | None:
+    """CHAR's ``{{system.class}}`` selector, resolved as a derivation (ADR-015).
+
+    The second reading of the stored :class:`RegistryCategory` triad, beside
+    :func:`is_clinical_use`. Both collapse the same three values; they differ
+    only in what they collapse to, because they answer different questions —
+    ``clinical_use`` asks whether an obligation attaches, ``system_class`` asks
+    which body of CHAR content applies. Keeping both as derivations is what
+    stops "is this system clinical?" acquiring a second stored answer.
+
+    ``CLINICAL`` maps to :attr:`SystemClass.CLINICAL`; ``OPERATIONAL`` and
+    ``ADMINISTRATIVE`` both map to
+    :attr:`SystemClass.ADMINISTRATIVE_OPERATIONAL`, which is ADR-015 open
+    item 1's deliberate single id. If that id later splits, this function
+    widens and no stored entry is touched.
+
+    ``None`` — an uncharacterized entry — derives ``None``. It must NOT fall
+    back to a class: CHAR content defaults to ``core`` in the absence of a
+    class (ADR-015 D3.1), and inventing ``administrative-operational`` here
+    would silently apply one class's specializations to an unclassified system.
+    """
+    if category is None:
+        return None
+    if RegistryCategory(category) is RegistryCategory.CLINICAL:
+        return SystemClass.CLINICAL
+    return SystemClass.ADMINISTRATIVE_OPERATIONAL
 
 
 def portfolio_size_bucket(active_count: int) -> PortfolioSizeBucket:

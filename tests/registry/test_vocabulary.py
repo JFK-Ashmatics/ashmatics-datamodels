@@ -32,10 +32,12 @@ from ashmatics_datamodels.registry import (
     RegistryDeployment,
     RegistrySourcing,
     SourcingChannel,
+    SystemClass,
     is_clinical_use,
     org_sourcing_mix,
     portfolio_size_bucket,
     sourcing_obligation,
+    system_class,
 )
 
 # ── Vocabulary freeze ────────────────────────────────────────────────────────
@@ -117,6 +119,13 @@ def test_derived_vocabularies_frozen():
         "mostly_internal",
         "internal_only",
     ]
+    # ADR-015 D4: class ids are kebab-case, unlike the snake_case used
+    # everywhere else in this module. CHAR's validate_registry.py enforces the
+    # same rule on the registry side; this freeze is the contract half.
+    assert [m.value for m in SystemClass] == [
+        "clinical",
+        "administrative-operational",
+    ]
 
 
 # ── is_clinical_use (AC-2) ───────────────────────────────────────────────────
@@ -133,6 +142,46 @@ def test_is_clinical_use_truth_table():
 def test_is_clinical_use_rejects_unknown_vocabulary():
     with pytest.raises(ValueError):
         is_clinical_use("clinical_use")  # the retired boolean's name, not a category
+
+
+# ── system_class (ADR-015) ──────────────────────────────────────────────────────
+
+
+def test_system_class_truth_table():
+    assert system_class(RegistryCategory.CLINICAL) is SystemClass.CLINICAL
+    assert system_class("clinical") is SystemClass.CLINICAL
+    assert (
+        system_class(RegistryCategory.OPERATIONAL)
+        is SystemClass.ADMINISTRATIVE_OPERATIONAL
+    )
+    assert system_class("administrative") is SystemClass.ADMINISTRATIVE_OPERATIONAL
+
+
+def test_system_class_uncharacterized_is_none_not_a_class():
+    """ADR-015 D3.1: absent class means CHAR core content, not a class.
+
+    Falling back to a class here would silently apply one class's
+    specializations to a system nobody has classified — the reason this
+    returns ``None`` rather than the majority value.
+    """
+    assert system_class(None) is None
+
+
+def test_system_class_rejects_unknown_vocabulary():
+    with pytest.raises(ValueError):
+        # The CHAR-side class id is not a RegistryCategory value; passing one
+        # back in is the round-trip mistake this guards.
+        system_class("administrative-operational")
+
+
+def test_system_class_and_is_clinical_use_agree_on_the_clinical_edge():
+    """The two derivations read the same stored triad and must never disagree
+    about which side of the clinical edge an entry falls on — that agreement is
+    the whole reason neither is stored."""
+    for category in RegistryCategory:
+        assert is_clinical_use(category) == (
+            system_class(category) is SystemClass.CLINICAL
+        )
 
 
 # ── portfolio_size_bucket (AC-3) ─────────────────────────────────────────────

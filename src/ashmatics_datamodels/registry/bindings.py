@@ -45,6 +45,7 @@ from .enums import (
     RegistryDeployment,
     RegistrySourcing,
     SourcingChannel,
+    SystemClass,
 )
 
 
@@ -140,5 +141,20 @@ REGISTRY_BINDINGS: tuple[SchemeBinding, ...] = (
         enum=OrgSourcingMix,
         status=BindingStatus.PRODUCT,
         note="Derived vocabulary (AC-3); proportion rollup, not a concept.",
+    ),
+    SchemeBinding(
+        enum=SystemClass,
+        status=BindingStatus.PENDING,
+        note=(
+            "Awaiting ashcai:SystemClassScheme. DERIVED from RegistryCategory "
+            "by derive.system_class, never stored — but unlike the other "
+            "derived vocabularies this one is not product-level: ADR-015 open "
+            "item 5 defers the anchor rather than declining it, because "
+            "minting a notation fixes it in the data plane (ADR-006) and "
+            "'administrative-operational' may yet split (open item 1). PENDING "
+            "with no CURIE keeps that decision visible in every test run. "
+            "Mint under the name SystemClassScheme, not GovernanceProfileScheme "
+            "— 'profile' is ADR-016's word."
+        ),
     ),
 )
