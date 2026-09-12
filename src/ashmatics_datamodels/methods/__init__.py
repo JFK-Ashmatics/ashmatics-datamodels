@@ -33,6 +33,7 @@ Usage::
 """
 
 from .clf import SystemAttribute
+from .derive import member_provenance
 from .enums import (
     AIParadigm,
     ConditionScope,
@@ -41,6 +42,7 @@ from .enums import (
     EvidenceType,
     FairnessFactor,
     InputModality,
+    MemberProvenance,
     MethodControlAction,
     MethodFamily,
     MethodPhase,
@@ -90,7 +92,9 @@ __all__ = [
     "MethodControlAction",
     # enums
     "MethodFamily",
+    "MemberProvenance",
     "MethodPhase",
+    "member_provenance",
     "EvidenceType",
     "DeliveryMode",
     "AIParadigm",

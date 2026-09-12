@@ -243,3 +243,30 @@ class ModelClass(str, Enum):
     CNN = "mc-cnn"
     RNN_SEQUENCE = "mc-rnn-sequence"
     TRANSFORMER = "mc-transformer"
+
+
+class MemberProvenance(str, Enum):
+    """
+    Where one member of an approved method set came from (ADR-022 D6).
+
+    ``delivery_mode`` is set-level and cannot answer "why this method". An
+    auditor's "why is this the bias method for this system" has a materially
+    different answer per member, and only the exemplar carries Asher's
+    warrant; a governance artifact that cannot distinguish them asserts a
+    uniform warrant that does not exist.
+
+    **Two values, where ADR-022 D6 names three origins.** The third,
+    operator-selected-for-this-job, is by D5 recorded against the job in the
+    customer's datastore and never claimed by CHAR — it cannot appear in an
+    ``ApprovedMethodSet``, which is the org's standing approved set rather
+    than a job record. No contract in this library represents a job record
+    today, so a third member here would be a value nothing could ever
+    produce. When that contract lands, it adds the third value; do not add it
+    here in anticipation.
+
+    Not ontology-anchored: no scheme mints these, and ADR-022 does not ask
+    for one. Recorded as contract-level vocabulary, not an oversight.
+    """
+
+    ASHER_EXEMPLAR = "asher_exemplar"
+    ORGANIZATIONALLY_ADJUDICATED = "organizationally_adjudicated"
