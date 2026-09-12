@@ -42,6 +42,7 @@ from typing import Annotated
 from pydantic import ConfigDict, Field, StringConstraints
 
 from ashmatics_datamodels.common.base import AshMaticsBaseModel
+from ashmatics_datamodels.common.enums import ActionAuthority
 
 from .enums import (
     AIParadigm,
@@ -180,6 +181,15 @@ class ApplicabilityProfile(AshMaticsBaseModel):
     )
 
     # Non-SKOS prerequisites (plain typed fields, not scheme-bound).
+    action_authority: list[ActionAuthority] | None = Field(
+        None,
+        description="Action authority levels the method applies to — what "
+        "the system may do without a human in the loop.",
+        json_schema_extra={
+            "x_ontology_scheme": "ash:ActionAuthorityScheme",
+            "x_ontology_property": "ashcai:appliesToActionAuthority",
+        },
+    )
     min_subgroup_n: int | None = Field(
         None, ge=1,
         description="Minimum per-stratum sample size for the method's "

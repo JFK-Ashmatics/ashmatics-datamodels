@@ -117,3 +117,26 @@ class Region(str, Enum):
     JP = "JP"
     KR = "KR"
     OTHER = "OTHER"
+
+
+class ActionAuthority(str, Enum):
+    """
+    ``ash:ActionAuthorityScheme`` — what the system may do without a human in
+    the loop. Minted in ontology 0.13.0 (ASHFORGE-638).
+
+    Lives here rather than in one consumer because it classifies the SYSTEM,
+    not the thing conditioning on it. Two modules condition on it today:
+    failure-mode applicability (a system that acts closes a feedback loop with
+    no human step in between) and, since 0.15.0, method applicability via
+    ``ashcai:appliesToActionAuthority``. It was defined in ``failure_modes``
+    through 0.14.0 purely because that was the first consumer, and is
+    re-exported from there so existing imports keep working.
+
+    Values are concept local names, matching the ash facet convention the
+    method and failure-mode applicability axes both use.
+    """
+
+    RECOMMEND_ONLY = "aa-recommend-only"
+    ACT_WITH_APPROVAL = "aa-act-with-approval"
+    ACT_AUTONOMOUSLY = "aa-act-autonomously"
+

@@ -22,6 +22,7 @@ from ashmatics_datamodels.common.base import (
     TimestampedModel,
 )
 from ashmatics_datamodels.common.enums import (
+    ActionAuthority,
     AuthorizationStatus,
     ParsingStatus,
     Region,
@@ -57,6 +58,7 @@ __all__ = [
     # Enums
     "AuthorizationStatus",
     "RegulatoryStatus",
+    "ActionAuthority",
     "RiskCategory",
     "ParsingStatus",
     "Region",

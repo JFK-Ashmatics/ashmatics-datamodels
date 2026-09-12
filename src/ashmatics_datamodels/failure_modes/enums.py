@@ -40,6 +40,13 @@ here; see ``OUT_OF_DISTRIBUTION_INPUT``.
 
 from enum import Enum
 
+# ActionAuthority moved to common/enums.py in 0.15.0: it is a SYSTEM facet
+# (ash:ActionAuthorityScheme), not a failure-mode concept, and it landed here
+# only because failure-mode applicability was the first thing to need it.
+# Method applicability now needs it too. Re-exported so existing imports from
+# this module keep working.
+from ..common.enums import ActionAuthority as ActionAuthority  # noqa: F401
+
 
 class AIFailureMode(str, Enum):
     """``ash:AIFailureModeScheme`` — how an AI system stops performing as intended."""
@@ -56,21 +63,6 @@ class AIFailureMode(str, Enum):
     FEEDBACK_LOOP = "fm-feedback-loop"
     UPSTREAM_DATA_FAILURE = "fm-upstream-data-failure"
     SILENT_INCOMPETENCE = "fm-silent-incompetence"
-
-
-class ActionAuthority(str, Enum):
-    """
-    ``ash:ActionAuthorityScheme`` — what the system may do without a human in
-    the loop. Minted in ontology 0.13.0 (ASHFORGE-638) and surfaced here because
-    failure-mode applicability conditions on it: a system that acts closes a
-    feedback loop with no human step in between.
-
-    Values are concept local names, per the module convention above.
-    """
-
-    RECOMMEND_ONLY = "aa-recommend-only"
-    ACT_WITH_APPROVAL = "aa-act-with-approval"
-    ACT_AUTONOMOUSLY = "aa-act-autonomously"
 
 
 class RepercussionAudience(str, Enum):
