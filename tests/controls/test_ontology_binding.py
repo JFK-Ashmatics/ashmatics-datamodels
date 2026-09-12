@@ -42,7 +42,10 @@ from ashmatics_datamodels.controls import (  # noqa: E402
     AVAILABILITY_ORDINAL,
     CADENCE_ORDINAL,
     MATURITY_ORDINAL,
+    REGISTRY_ADMISSIBLE_KINDS,
+    SUBSTANTIATION_ORDINAL,
     YIELDS_ASSURANCE_MODE,
+    YIELDS_EVIDENCE_MECHANISM,
     AssuranceCadence,
     AssuranceMode,
     ControlMaturity,
@@ -50,6 +53,8 @@ from ashmatics_datamodels.controls import (  # noqa: E402
     Edition,
     EvidenceMechanism,
     MechanismAvailability,
+    SourceClass,
+    SubstantiationKind,
 )
 
 ASHCAI = "https://ashmatics.com/ontology/cai#"
@@ -64,12 +69,15 @@ SCHEMES: dict[type[Enum], str] = {
     MechanismAvailability: ASHCAI + "MechanismAvailabilityScheme",
     AssuranceCadence: ASHCAI + "AssuranceCadenceScheme",
     DeploymentMode: ASH + "DeploymentModeScheme",
+    SubstantiationKind: ASHCAI + "SubstantiationKindScheme",
+    SourceClass: ASHCAI + "SourceClassScheme",
 }
 ORDINALS: dict[type[Enum], tuple[dict, str]] = {
     ControlMaturity: (MATURITY_ORDINAL, "maturityOrdinal"),
     AssuranceMode: (ASSURANCE_ORDINAL, "assuranceOrdinal"),
     MechanismAvailability: (AVAILABILITY_ORDINAL, "availabilityOrdinal"),
     AssuranceCadence: (CADENCE_ORDINAL, "cadenceOrdinal"),
+    SubstantiationKind: (SUBSTANTIATION_ORDINAL, "substantiationOrdinal"),
 }
 
 
@@ -152,3 +160,65 @@ def test_edition_has_no_ontology_anchor(graph):
             for n in graph.objects(c, SKOS.notation)
         }
         assert not wanted <= notations, f"{scheme} now carries the editions; bind Edition to it"
+
+
+def test_yields_evidence_mechanism_matches_ontology(graph):
+    """
+    ``ashcai:yieldsEvidenceMechanism``, checked as an exact SET per kind.
+
+    Unlike ``yieldsAssuranceMode`` this edge is one-to-many, so a
+    len-1 assertion would not fit and a subset assertion would let the
+    ontology grow an edge the ceiling calculation never sees.
+    """
+    kinds = _concepts(graph, "SubstantiationKindScheme")
+    mechs = {v: k for k, v in _concepts(graph, "EvidenceMechanismScheme").items()}
+    prop = URIRef(ASHCAI + "yieldsEvidenceMechanism")
+    for kind, expected in YIELDS_EVIDENCE_MECHANISM.items():
+        edges = {mechs[o] for o in graph.objects(kinds[kind.value], prop)}
+        assert edges == {m.value for m in expected}, (
+            f"{kind.value} yields {sorted(m.value for m in expected)} in code, "
+            f"{sorted(edges)} in the ontology"
+        )
+
+
+def test_registry_admissible_kinds_is_the_scheme_minus_attest(graph):
+    """
+    The scheme has five concepts; ``tooling_registry.yaml``'s ``admits``
+    field legally carries four.
+
+    Every contract admits ``attest`` by construction, so writing it is
+    redundant and the framework validator rejects it. This asserts the gap
+    stays exactly one concept and exactly that one, so nobody "reconciles"
+    the counts in either direction: dropping ATTEST from the enum would
+    break the scheme parity test above, and adding it here would start
+    accepting a listed ``attest`` in the registry.
+    """
+    notations = set(_concepts(graph, "SubstantiationKindScheme"))
+    admissible = {k.value for k in REGISTRY_ADMISSIBLE_KINDS}
+    assert notations - admissible == {"attest"}
+    assert admissible < notations
+
+
+def test_source_class_scheme_is_flat(graph):
+    """
+    ``ashcai:SourceClassScheme`` carries no ``skos:broader``, deliberately:
+    a hierarchy would let a consumer roll up at a grain nobody chose
+    (handoff spec, and the scheme's own scopeNote).
+    """
+    scheme = URIRef(SCHEMES[SourceClass])
+    concepts = list(graph.subjects(SKOS.inScheme, scheme))
+    # Not vacuous: an unresolvable scheme IRI would give an empty loop, which
+    # is indistinguishable from a pass.
+    assert len(concepts) == len(list(SourceClass))
+    for c in concepts:
+        assert not list(graph.objects(c, SKOS.broader)), f"{c} has skos:broader"
+
+
+def test_no_reads_from_source_class_property(graph):
+    """
+    Which tool reads from what is REGISTRY content, held on the tool entry
+    in CHAR. The ontology supplies the vocabulary and nothing more; minting
+    the property would invite asserting instance relations in TTL.
+    """
+    assert not list(graph.subjects(RDF.type, URIRef(ASHCAI + "readsFromSourceClass")))
+    assert not list(graph.predicate_objects(URIRef(ASHCAI + "readsFromSourceClass")))

@@ -14,7 +14,7 @@
 
 [project]
 name = "ashmatics-datamodels"
-version = "0.12.0"  # SystemClass — CHAR's {{system.class}} as a derivation over RegistryCategory (aigov-framework ADR-015 / ASHFORGE-659)
+version = "0.13.0"  # SubstantiationKind + SourceClass — the tool-contract vocabularies CHAR ships values for (aigov-framework ASHFORGE-370)
 description = "Canonical Pydantic data models for AshMatics healthcare applications - FDA vocabulary, regulatory schemas, and clinical AI use cases"
 authors = [
     {name = "Asher Informatics PBC", email = "info@asherinformatics.com"}

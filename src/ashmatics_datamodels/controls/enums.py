@@ -199,3 +199,113 @@ YIELDS_ASSURANCE_MODE: dict[EvidenceMechanism, AssuranceMode] = {
     EvidenceMechanism.TELEMETRY_STREAM: AssuranceMode.COLLECTED,
     EvidenceMechanism.COMPUTED_DERIVATION: AssuranceMode.COLLECTED,
 }
+
+
+class SubstantiationKind(str, Enum):
+    """
+    ``ashcai:SubstantiationKindScheme`` — HOW a tool contract can honestly
+    substantiate a claim. Ordered, 1 (attest) to 5 (connect).
+
+    Mirrors ``EvidenceMechanism`` deliberately rather than forming an
+    independent axis: a contract admits a kind, the kind yields mechanisms
+    (``YIELDS_EVIDENCE_MECHANISM``), the mechanisms already carry assurance
+    modes, so the achievable ceiling stays one function rather than two.
+
+    Anchors the ``admits`` field on every entry of the aigov-framework's
+    ``tooling_registry.yaml``. **That field's legal set is four values, not
+    five** — see ``REGISTRY_ADMISSIBLE_KINDS``.
+    """
+
+    ATTEST = "attest"
+    FORM = "form"
+    CONVERSE = "converse"
+    COMPUTE = "compute"
+    CONNECT = "connect"
+
+
+class SourceClass(str, Enum):
+    """
+    ``ashcai:SourceClassScheme`` — WHAT KIND of system a tool contract reads
+    from. Anchors ``reads_from`` in ``tooling_registry.yaml``.
+
+    A parallel axis to ``SubstantiationKind``, not a refinement beneath it,
+    and that was measured: 8 of these 17 classes are reached by both
+    ``compute`` and ``connect`` contracts, so source class varies
+    independently of how the claim is substantiated.
+
+    Unordered, flat, and no hierarchy on purpose (scheme scopeNote): a
+    rollup would be at a grain nobody chose. The grain is coarse by
+    decision — grouped by the connection a customer would actually make,
+    not by what a tool is called, so ``LEARNING_PLATFORM`` spans LMS,
+    assessment, competency and certification, and ``SERVICE_MANAGEMENT``
+    spans incident intake and case management.
+
+    Every value names a KIND of source, never a product or a system a
+    customer runs. A named system is instance data and belongs in the
+    coreapp Fabric binding's ``target``.
+    """
+
+    MODEL_INFERENCE = "model_inference"
+    MODEL_OUTPUTS = "model_outputs"
+    USAGE_TELEMETRY = "usage_telemetry"
+    DATA_PLATFORM = "data_platform"
+    DEPLOYED_SYSTEM = "deployed_system"
+    LEARNING_PLATFORM = "learning_platform"
+    COMMUNICATION_CHANNEL = "communication_channel"
+    ASHER_SERVICE = "asher_service"
+    SECURITY_OPERATIONS = "security_operations"
+    SERVICE_MANAGEMENT = "service_management"
+    API_GATEWAY = "api_gateway"
+    IDENTITY_PLATFORM = "identity_platform"
+    CONSENT_PLATFORM = "consent_platform"
+    TERMINOLOGY_SERVICE = "terminology_service"
+    SUPPLY_CHAIN_FEED = "supply_chain_feed"
+    DOCUMENT_REPOSITORY = "document_repository"
+    COLLABORATION_WORKSPACE = "collaboration_workspace"
+
+
+# ashcai:substantiationOrdinal — the ladder, reading as increasing directness
+# of evidence and increasing integration effort together. Guard-checked.
+#
+# NOT derived from the order values appear in a registry entry's `admits`
+# list: 11 of the 135 entries author that list out of ladder order, so the
+# sequence there is incidental and nothing should read it as semantic.
+SUBSTANTIATION_ORDINAL: dict[SubstantiationKind, int] = {
+    SubstantiationKind.ATTEST: 1,
+    SubstantiationKind.FORM: 2,
+    SubstantiationKind.CONVERSE: 3,
+    SubstantiationKind.COMPUTE: 4,
+    SubstantiationKind.CONNECT: 5,
+}
+
+# ashcai:yieldsEvidenceMechanism — one-to-MANY, unlike yieldsAssuranceMode.
+# Guard-checked against the TTL edges as an exact set per kind.
+#
+# FORM and CONVERSE both yield DOCUMENT_SUBMISSION: converse ranks above form
+# on elicitation effort, not on a stronger class of evidence.
+YIELDS_EVIDENCE_MECHANISM: dict[SubstantiationKind, frozenset[EvidenceMechanism]] = {
+    SubstantiationKind.ATTEST: frozenset(
+        {EvidenceMechanism.HUMAN_ASSERTION, EvidenceMechanism.DOCUMENT_SUBMISSION}
+    ),
+    SubstantiationKind.FORM: frozenset({EvidenceMechanism.DOCUMENT_SUBMISSION}),
+    SubstantiationKind.CONVERSE: frozenset({EvidenceMechanism.DOCUMENT_SUBMISSION}),
+    SubstantiationKind.COMPUTE: frozenset({EvidenceMechanism.COMPUTED_DERIVATION}),
+    SubstantiationKind.CONNECT: frozenset(
+        {EvidenceMechanism.SYSTEM_QUERY, EvidenceMechanism.TELEMETRY_STREAM}
+    ),
+}
+
+# The values a `tooling_registry.yaml` entry may legally write into `admits`.
+#
+# The scheme has five concepts and this set has four, and the gap is
+# deliberate: EVERY contract admits ATTEST by construction, so writing it is
+# redundant and the framework validator rejects it. ATTEST is still a real
+# value everywhere downstream — it is the default binding for an unbuilt
+# connector and the kind a ToolBinding or an ArtifactRecord most often
+# carries — which is why it is a member of the enum and of the scheme.
+#
+# A consumer validating registry content checks membership HERE, not in
+# SubstantiationKind. Do not "fix" the counts to match.
+REGISTRY_ADMISSIBLE_KINDS: frozenset[SubstantiationKind] = frozenset(
+    SubstantiationKind
+) - {SubstantiationKind.ATTEST}

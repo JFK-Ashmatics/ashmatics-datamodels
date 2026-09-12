@@ -49,7 +49,10 @@ from .enums import (
     AVAILABILITY_ORDINAL,
     CADENCE_ORDINAL,
     MATURITY_ORDINAL,
+    REGISTRY_ADMISSIBLE_KINDS,
+    SUBSTANTIATION_ORDINAL,
     YIELDS_ASSURANCE_MODE,
+    YIELDS_EVIDENCE_MECHANISM,
     AssuranceCadence,
     AssuranceMode,
     ControlMaturity,
@@ -57,6 +60,8 @@ from .enums import (
     Edition,
     EvidenceMechanism,
     MechanismAvailability,
+    SourceClass,
+    SubstantiationKind,
 )
 
 __all__ = [
@@ -66,7 +71,10 @@ __all__ = [
     "COMPONENT_TOKEN_PATTERN",
     "DEFAULT_MINIMUM_AVAILABILITY",
     "MATURITY_ORDINAL",
+    "REGISTRY_ADMISSIBLE_KINDS",
+    "SUBSTANTIATION_ORDINAL",
     "YIELDS_ASSURANCE_MODE",
+    "YIELDS_EVIDENCE_MECHANISM",
     "AssuranceCadence",
     "AssuranceMode",
     "AvailabilityRecordMetadata",
@@ -80,4 +88,6 @@ __all__ = [
     "MechanismAvailability",
     "MechanismAvailabilityEntry",
     "MechanismAvailabilityRecord",
+    "SourceClass",
+    "SubstantiationKind",
 ]
